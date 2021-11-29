@@ -1,0 +1,25 @@
+{
+  "name": "investec-open-api",
+  "version": "1.0.0",
+  "description": "A Node module to interact with Investec's Open API",
+  "main": "index.js",
+  "repository": "git@github.com:FrikkieSnyman/investec-open-api.git",
+  "author": "Frikkie Snyman",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "test": "node ./dist/test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.10",
+    "@types/node-fetch": "2",
+    "typescript": "^4.5.2"
+  },
+  "dependencies": {
+    "node-fetch": "2"
+  },
+  "engines": {
+    "node": "14.x"
+  }
+}
