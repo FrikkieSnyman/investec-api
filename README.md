@@ -55,7 +55,7 @@ _Early access_: This feature is early access, and you may need to request access
 _Proceed with caution_
 
 ```
-const transfer = await account.transfer([recipientAccount: Account, amount: number, myReference: string, theirReference: string]);
+const transfer = await account.transfer([{recipientAccount: Account, amount: number, myReference: string, theirReference: string}]);
 ```
 
 ## Cards
