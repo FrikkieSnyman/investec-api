@@ -44,7 +44,7 @@ const balance = await account.getBalance();
 #### Get transactions
 
 ```
-const transactions = await account.getTransactions();
+const transactions = await account.getTransactions({fromDate: string, toDate: string, transactionType: string});
 ```
 
 #### Transfer
