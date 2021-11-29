@@ -20,6 +20,67 @@ export interface InvestecAccount {
   productName: string;
 }
 
+export interface InvestecCard {
+  CardKey: string;
+  CardNumber: string;
+  IsProgrammable: boolean;
+  Status: string;
+  CardTypeCode: string;
+  AccountNumber: string;
+  AccountId: string;
+}
+
+export interface InvestecCardCode {
+  codeId: string;
+  code: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  error: string | null;
+}
+
+export interface InvestecSimulateExecutionInput {
+  code: string;
+  centsAmount: string;
+  currencyCode: string;
+  merchantCode: number;
+  merchantCity: string;
+  countryCode: string;
+}
+
+export interface InvestecCardExecution {
+  executionId: string;
+  rootCodeFunctionId: string;
+  sandbox: boolean;
+  type: "before_transaction" | "after_transaction";
+  authorizationApproved: boolean | null;
+  logs: Array<{
+    createdAt: string;
+    level: string;
+    content: string;
+  }>;
+  smsCount: number;
+  emailCount: number;
+  pushNotificationCount: number;
+  createdAt: string;
+  startedAt: string;
+  completedAt: string;
+  updatedAt: string;
+  Error: string | null;
+}
+
+export interface InvestecCardEnvironmentVariables {
+  variables: { [key in string]: string | number | boolean | Object };
+  createdAt: string;
+  updatedAt: string;
+  error: null | string;
+}
+
+export interface InvestecNameAndCode {
+  Code: string;
+  Name: string;
+}
+
 export interface InvestecAccountBalance {
   accountId: string;
   currentBalance: number;
@@ -42,11 +103,12 @@ export interface InvestecTransaction {
   amount: number;
   runningBalance: number;
 }
+
 type Status = { status: number };
 type InvestecGenericOKResponse<Data> = {
   data: Data;
   links: {
-    self: string;
+    self: string | null;
   };
   meta: {
     totalPages: number;
@@ -73,6 +135,29 @@ export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
   transactions: InvestecTransaction[];
 }>;
 
+export type InvestecCardsResponse = InvestecGenericResponse<{
+  cards: InvestecCard[];
+}>;
+
+export type InvestecCardCodeResponse = InvestecGenericResponse<{
+  result: InvestecCardCode;
+}>;
+
+export type InvestecCardSimulationExecutionResponse = InvestecGenericResponse<{
+  result: InvestecCardExecution[];
+}>;
+
+export type InvestecCardExecutionResponse = InvestecGenericResponse<{
+  executionItems: InvestecCardExecution[];
+}>;
+
+export type InvestecCardEnvironmentVariablesResponse = InvestecGenericResponse<{
+  result: InvestecCardEnvironmentVariables;
+}>;
+
+export type InvestecCardNameCodeResponse = InvestecGenericResponse<{
+  result: InvestecNameAndCode[];
+}>;
 export const isResponseBad = (response: any): response is Status => {
   return !!response.status;
 };
