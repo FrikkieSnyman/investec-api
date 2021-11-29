@@ -1,4 +1,4 @@
-# investec-open-api
+# investec-api
 
 An NPM module to interact with Investec's Open API
 
