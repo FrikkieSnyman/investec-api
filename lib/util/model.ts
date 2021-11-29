@@ -33,28 +33,26 @@ export interface InvestecTransaction {
   amount: number;
   runningBalance: number;
 }
+type Status = { status: number };
+type InvestecGenericOKResponse<Data> = {
+  data: Data;
+  links: {
+    self: string;
+  };
+  meta: {
+    totalPages: number;
+  };
+};
+type InvestecGenericResponse<Data> = Status | InvestecGenericOKResponse<Data>;
 
-type InvestecGenericResponse<Data> =
-  | { status: number }
-  | {
-      data: Data;
-      links: {
-        self: string;
-      };
-      meta: {
-        totalPages: number;
-      };
-    };
+export type InvestecAuthResponse = Status | InvestecToken;
 
-export type InvestecAuthResponse =
-  | { status: number }
-  | {
-      access_token: string;
-      token_type: "Bearer";
-      expires_in: number;
-      scope: "accounts";
-    };
-
+export type InvestecToken = {
+  access_token: string;
+  token_type: "Bearer";
+  expires_in: number;
+  scope: "accounts";
+};
 export type InvestecAccountsResponse = InvestecGenericResponse<{
   accounts: InvestecAccount[];
 }>;
@@ -65,3 +63,7 @@ export type InvestecAccountBalanceResponse =
 export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
   transactions: InvestecTransaction;
 }>;
+
+export const isResponseBad = (response: any): response is Status => {
+  return !!response.status;
+};
