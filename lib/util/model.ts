@@ -36,7 +36,7 @@ export interface InvestecCardCode {
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
-  error: string | null;
+  error: any;
 }
 
 export interface InvestecSimulateExecutionInput {
@@ -66,14 +66,14 @@ export interface InvestecCardExecution {
   startedAt: string;
   completedAt: string;
   updatedAt: string;
-  Error: string | null;
+  Error: any;
 }
 
 export interface InvestecCardEnvironmentVariables {
   variables: { [key in string]: string | number | boolean | Object };
   createdAt: string;
   updatedAt: string;
-  error: null | string;
+  error: any;
 }
 
 export interface InvestecNameAndCode {
@@ -143,12 +143,8 @@ export type InvestecCardCodeResponse = InvestecGenericResponse<{
   result: InvestecCardCode;
 }>;
 
-export type InvestecCardSimulationExecutionResponse = InvestecGenericResponse<{
-  result: InvestecCardExecution[];
-}>;
-
 export type InvestecCardExecutionResponse = InvestecGenericResponse<{
-  executionItems: InvestecCardExecution[];
+  result: InvestecCardExecution[];
 }>;
 
 export type InvestecCardEnvironmentVariablesResponse = InvestecGenericResponse<{

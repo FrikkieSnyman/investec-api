@@ -17,28 +17,47 @@ import {
   InvestecCardCode,
   InvestecCardEnvironmentVariables,
   InvestecCardExecution,
+  InvestecNameAndCode,
   InvestecSimulateExecutionInput,
   isResponseBad,
 } from "../util/model";
 
 export class Card implements InvestecCard {
-  public static async getCountries(client: Client) {
+  public static async getCountries(
+    client: Client
+  ): Promise<InvestecNameAndCode[]> {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    return getInvestecCardCountries(client.token.access_token);
+    const response = await getInvestecCardCountries(client.token.access_token);
+    if (isResponseBad(response)) {
+      throw new Error(`error getting countries: ${{ response }}`);
+    }
+    return response.data.result;
   }
-  public static async getCurrencies(client: Client) {
+  public static async getCurrencies(
+    client: Client
+  ): Promise<InvestecNameAndCode[]> {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    return getInvestecCardCurrencies(client.token.access_token);
+    const response = await getInvestecCardCurrencies(client.token.access_token);
+    if (isResponseBad(response)) {
+      throw new Error(`error getting countries: ${{ response }}`);
+    }
+    return response.data.result;
   }
-  public static async getMerchants(client: Client) {
+  public static async getMerchants(
+    client: Client
+  ): Promise<InvestecNameAndCode[]> {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    return getInvestecCardMerchants(client.token.access_token);
+    const response = await getInvestecCardMerchants(client.token.access_token);
+    if (isResponseBad(response)) {
+      throw new Error(`error getting countries: ${{ response }}`);
+    }
+    return response.data.result;
   }
   public CardKey: string;
   public CardNumber: string;
@@ -177,7 +196,7 @@ export class Card implements InvestecCard {
         }}`
       );
     }
-    return execution.data.executionItems;
+    return execution.data.result;
   }
 
   public async getEnvironmentVariables(): Promise<InvestecCardEnvironmentVariables> {

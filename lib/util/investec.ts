@@ -7,7 +7,6 @@ import {
   InvestecCardCodeResponse,
   InvestecCardNameCodeResponse,
   InvestecCardEnvironmentVariablesResponse,
-  InvestecCardSimulationExecutionResponse,
   InvestecCardsResponse,
   InvestecTransactionTransactionType,
   InvestecSimulateExecutionInput,
@@ -227,7 +226,7 @@ export const postInvestecSimulateExecuteFunctionCode = async (
   token: string,
   cardKey: string,
   opts: InvestecSimulateExecutionInput
-): Promise<InvestecCardSimulationExecutionResponse> => {
+): Promise<InvestecCardExecutionResponse> => {
   const body = { ...opts };
   const response = await fetch(
     `https://openapi.investec.com/za/v1/cards/${cardKey}/code/execute`,
@@ -240,7 +239,7 @@ export const postInvestecSimulateExecuteFunctionCode = async (
       },
     }
   );
-  return safeResponse<InvestecCardSimulationExecutionResponse>(response);
+  return safeResponse<InvestecCardExecutionResponse>(response);
 };
 
 export const getInvestecCardExecutions = async (

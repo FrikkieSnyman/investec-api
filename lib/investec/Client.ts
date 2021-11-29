@@ -1,6 +1,11 @@
-import { getInvestecAccounts, getInvestecToken } from "../util/investec";
+import {
+  getInvestecAccounts,
+  getInvestecCards,
+  getInvestecToken,
+} from "../util/investec";
 import { InvestecToken, isResponseBad } from "../util/model";
 import { Account } from "./Account";
+import { Card } from "./Card";
 
 export class Client {
   public static async create(clientId: string, clientSecret: string) {
@@ -10,6 +15,14 @@ export class Client {
   }
   public token: InvestecToken | undefined;
 
+  public async authenticate() {
+    const response = await getInvestecToken(this.clientId, this.clientSecret);
+
+    if (isResponseBad(response)) {
+      throw new Error(`bad response from investect auth: ${response}`);
+    }
+    this.token = response;
+  }
   public async getAccounts(): Promise<Account[]> {
     if (!this.token) {
       throw new Error("client is not set up");
@@ -21,13 +34,16 @@ export class Client {
     return accounts.data.accounts.map((a) => new Account(this, a));
   }
 
-  public async authenticate() {
-    const response = await getInvestecToken(this.clientId, this.clientSecret);
-
-    if (isResponseBad(response)) {
-      throw new Error(`bad response from investect auth: ${response}`);
+  public async getCards(): Promise<Card[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
     }
-    this.token = response;
+    const accounts = await getInvestecCards(this.token.access_token);
+    if (isResponseBad(accounts)) {
+      throw new Error("not ok response from getting cards: " + accounts);
+    }
+    return accounts.data.cards.map((c) => new Card(this, c));
   }
+
   private constructor(private clientId: string, private clientSecret: string) {}
 }
