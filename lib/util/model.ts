@@ -34,22 +34,26 @@ export interface InvestecTransaction {
   runningBalance: number;
 }
 
-type InvestecGenericResponse<Data> = {
-  data: Data;
-  links: {
-    self: string;
-  };
-  meta: {
-    totalPages: number;
-  };
-};
+type InvestecGenericResponse<Data> =
+  | { status: number }
+  | {
+      data: Data;
+      links: {
+        self: string;
+      };
+      meta: {
+        totalPages: number;
+      };
+    };
 
-export type InvestecAuthResponse = {
-  access_token: string;
-  token_type: "Bearer";
-  expires_in: number;
-  scope: "accounts";
-};
+export type InvestecAuthResponse =
+  | { status: number }
+  | {
+      access_token: string;
+      token_type: "Bearer";
+      expires_in: number;
+      scope: "accounts";
+    };
 
 export type InvestecAccountsResponse = InvestecGenericResponse<{
   accounts: InvestecAccount[];

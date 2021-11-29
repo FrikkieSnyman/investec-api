@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import fetch, { Response } from "node-fetch";
 import {
   InvestecAccountBalanceResponse,
   InvestecAccountsResponse,
@@ -10,6 +10,14 @@ const getBasicHeaders = (token: string) => {
   return {
     Authorization: `Bearer ${token}`,
   };
+};
+
+const safeResponse = <T>(response: Response) => {
+  if (response.status !== 200) {
+    return { status: response.status };
+  }
+
+  return response.json() as Promise<T>;
 };
 
 export const getInvestecToken = async (
@@ -26,9 +34,7 @@ export const getInvestecToken = async (
       },
     }
   );
-  console.log(tokenResponse);
-
-  return tokenResponse.json() as Promise<InvestecAuthResponse>;
+  return safeResponse<InvestecAuthResponse>(tokenResponse);
 };
 
 export const getInvestecAccounts = async (
@@ -42,7 +48,7 @@ export const getInvestecAccounts = async (
       },
     }
   );
-  return accountsResponse.json() as Promise<InvestecAccountsResponse>;
+  return safeResponse<InvestecAccountsResponse>(accountsResponse);
 };
 
 export const getAccountBalance = async (
@@ -52,7 +58,7 @@ export const getAccountBalance = async (
   const balanceResponse = await fetch(``, {
     headers: { ...getBasicHeaders(token) },
   });
-  return balanceResponse.json() as Promise<InvestecAccountBalanceResponse>;
+  return safeResponse<InvestecAccountBalanceResponse>(balanceResponse);
 };
 
 export const getInvestecTransactionsForAccount = async (
@@ -80,5 +86,7 @@ export const getInvestecTransactionsForAccount = async (
       },
     }
   );
-  return transactionsResponse.json() as Promise<InvestecAccountTransactionsResponse>;
+  return safeResponse<InvestecAccountTransactionsResponse>(
+    transactionsResponse
+  );
 };
