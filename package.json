@@ -9,7 +9,7 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "test": "node ./dist/test.js"
+    "test": "yarn build && node ./dist/test.js"
   },
   "devDependencies": {
     "@types/node": "^16.11.10",

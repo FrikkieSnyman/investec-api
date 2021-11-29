@@ -1,6 +1,15 @@
 export type InvestecTransactionType = "DEBIT" | "CREDIT";
 
-export type InvestecTransactionTransactionType = string; // what are the values here? "FeesAndInterest"
+export type InvestecTransactionTransactionType =
+  | "CardPurchases"
+  | "VASTransactions"
+  | "OnlineBankingPayments"
+  | "DebitOrders"
+  | "Deposits"
+  | "ATMWithdrawals"
+  | "FeesAndInterest"
+  | string
+  | null; // what are the values here?
 export type InvestecTransactionStatus = string; // what are the values here? "POSTED"
 
 export interface InvestecAccount {
@@ -61,7 +70,7 @@ export type InvestecAccountBalanceResponse =
   InvestecGenericResponse<InvestecAccountBalance>;
 
 export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
-  transactions: InvestecTransaction;
+  transactions: InvestecTransaction[];
 }>;
 
 export const isResponseBad = (response: any): response is Status => {

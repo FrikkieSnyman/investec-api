@@ -55,9 +55,12 @@ export const getAccountBalance = async (
   token: string,
   accountId: string
 ): Promise<InvestecAccountBalanceResponse> => {
-  const balanceResponse = await fetch(``, {
-    headers: { ...getBasicHeaders(token) },
-  });
+  const balanceResponse = await fetch(
+    `https://openapi.investec.com/za/pb/v1/accounts/${accountId}/balance`,
+    {
+      headers: { ...getBasicHeaders(token) },
+    }
+  );
   return safeResponse<InvestecAccountBalanceResponse>(balanceResponse);
 };
 
@@ -89,4 +92,42 @@ export const getInvestecTransactionsForAccount = async (
   return safeResponse<InvestecAccountTransactionsResponse>(
     transactionsResponse
   );
+};
+
+export const postInvestecTransferMultiple = async (
+  token: string,
+  {
+    fromAccountId,
+    toAccounts,
+  }: {
+    fromAccountId: string;
+    toAccounts: Array<{
+      accountId: string;
+      amount: number;
+      myReference: string;
+      theirReference: string;
+    }>;
+  }
+): Promise<any> => {
+  const body = {
+    AccountId: fromAccountId,
+    TransferList: toAccounts.map((t) => ({
+      BeneficiaryAccountId: t.accountId,
+      Amount: t.amount,
+      MyReference: t.myReference,
+      TheirReference: t.theirReference,
+    })),
+  };
+  const transferResponse = await fetch(
+    "https://openapi.investec.com/za/pb/v1/accounts/transfermultiple",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        ...getBasicHeaders(token),
+      },
+    }
+  );
+  return safeResponse<any>(transferResponse);
 };
