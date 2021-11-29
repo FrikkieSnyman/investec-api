@@ -2,12 +2,14 @@
   "name": "investec-open-api",
   "version": "1.0.0",
   "description": "A Node module to interact with Investec's Open API",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "git@github.com:FrikkieSnyman/investec-open-api.git",
   "author": "Frikkie Snyman",
   "license": "MIT",
   "private": false,
   "scripts": {
+    "prepublish": "yarn build",
     "build": "tsc",
     "test": "yarn build && node ./dist/test.js"
   },
