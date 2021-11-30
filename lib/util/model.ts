@@ -104,6 +104,15 @@ export interface InvestecTransaction {
   runningBalance: number;
 }
 
+export interface InvestecTransfer {
+  PaymentReferenceNumber: string;
+  PaymentDate: string;
+  Status: string;
+  BeneficiaryName: string;
+  BeneficiaryAccountId: string;
+  AuthorisationRequired: boolean;
+}
+
 type Status = { status: number };
 type InvestecGenericOKResponse<Data> = {
   data: Data;
@@ -135,6 +144,11 @@ export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
   transactions: InvestecTransaction[];
 }>;
 
+export type InvestecAccountTransferResponse = InvestecGenericResponse<{
+  transferResponse: InvestecTransfer;
+  ErrorMessage: any;
+}>;
+
 export type InvestecCardsResponse = InvestecGenericResponse<{
   cards: InvestecCard[];
 }>;
@@ -154,6 +168,7 @@ export type InvestecCardEnvironmentVariablesResponse = InvestecGenericResponse<{
 export type InvestecCardNameCodeResponse = InvestecGenericResponse<{
   result: InvestecNameAndCode[];
 }>;
+
 export const isResponseBad = (response: any): response is Status => {
   return !!response.status;
 };

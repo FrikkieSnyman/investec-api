@@ -8,6 +8,7 @@ import {
   InvestecAccount,
   InvestecTransaction,
   InvestecTransactionTransactionType,
+  InvestecTransfer,
   isResponseBad,
 } from "../util/model";
 
@@ -79,7 +80,7 @@ export class Account implements InvestecAccount {
       theirReference: string;
       amount: number;
     }>
-  ) {
+  ): Promise<InvestecTransfer> {
     if (!this.client.token) {
       throw new Error("client is not set up");
     }
@@ -103,6 +104,6 @@ export class Account implements InvestecAccount {
         }}`
       );
     }
-    return transferResponse;
+    return transferResponse.data.transferResponse;
   }
 }
