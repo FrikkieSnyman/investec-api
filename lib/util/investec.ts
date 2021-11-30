@@ -11,6 +11,7 @@ import {
   InvestecTransactionTransactionType,
   InvestecSimulateExecutionInput,
   InvestecCardExecutionResponse,
+  InvestecAccountTransferResponse,
 } from "./model";
 const getBasicHeaders = (token: string) => {
   return {
@@ -114,7 +115,7 @@ export const postInvestecTransferMultiple = async (
       theirReference: string;
     }>;
   }
-): Promise<any> => {
+): Promise<InvestecAccountTransferResponse> => {
   const body = {
     AccountId: fromAccountId,
     TransferList: toAccounts.map((t) => ({
@@ -135,7 +136,7 @@ export const postInvestecTransferMultiple = async (
       },
     }
   );
-  return safeResponse<any>(transferResponse);
+  return safeResponse<InvestecAccountTransferResponse>(transferResponse);
 };
 
 export const getInvestecCards = async (

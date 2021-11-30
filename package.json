@@ -10,7 +10,7 @@
   "private": false,
   "scripts": {
     "prepublish": "yarn build",
-    "build": "tsc",
+    "build": "rm -rf dist/ && tsc",
     "test": "yarn build && node ./dist/test.js"
   },
   "devDependencies": {
