@@ -50,9 +50,6 @@ const transactions = await account.getTransactions({fromDate: string, toDate: st
 #### Transfer
 
 _Early access_: This feature is early access, and you may need to request access to it.
-(I don't have access yet, so I haven't tested this call 😇)
-
-_Proceed with caution_
 
 ```
 const transfer = await account.transfer([{recipientAccount: Account, amount: number, myReference: string, theirReference: string}]);
