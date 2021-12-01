@@ -80,7 +80,7 @@ export class Account implements InvestecAccount {
       theirReference: string;
       amount: number;
     }>
-  ): Promise<InvestecTransfer> {
+  ): Promise<InvestecTransfer[]> {
     if (!this.client.token) {
       throw new Error("client is not set up");
     }
@@ -104,6 +104,6 @@ export class Account implements InvestecAccount {
         }}`
       );
     }
-    return transferResponse.data.transferResponse;
+    return transferResponse.data.transferResponse.TransferResponses;
   }
 }
