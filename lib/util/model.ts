@@ -145,7 +145,7 @@ export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
 }>;
 
 export type InvestecAccountTransferResponse = InvestecGenericResponse<{
-  transferResponse: InvestecTransfer;
+  transferResponse: { TransferResponses: InvestecTransfer[] };
   ErrorMessage: any;
 }>;
 
