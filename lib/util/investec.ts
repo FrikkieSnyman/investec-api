@@ -35,9 +35,12 @@ export const getInvestecToken = async (
     "https://openapi.investec.com/identity/v2/oauth2/token",
     {
       method: "POST",
-      body: `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}&scope=accounts`,
+      body: `grant_type=client_credentials&scope=accounts`,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic  ${Buffer.from(
+          `${clientId}:${clientSecret}`
+        ).toString("base64")} `,
       },
     }
   );
