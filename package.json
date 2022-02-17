@@ -23,8 +23,5 @@
   },
   "dependencies": {
     "node-fetch": "2"
-  },
-  "engines": {
-    "node": "14.x"
   }
 }
