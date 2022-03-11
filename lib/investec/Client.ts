@@ -72,7 +72,7 @@ export class Client {
     if (!this.token) {
       throw new Error("client is not set up");
     }
-    const accounts = await getInvestecAccounts(this.token.access_token);
+    const accounts = await getInvestecAccounts(this.token.access_token, realm);
     if (isResponseBad(accounts)) {
       throw new Error("not ok response from getting accounts: " + accounts);
     }
