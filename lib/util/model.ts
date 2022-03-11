@@ -125,13 +125,18 @@ type InvestecGenericOKResponse<Data> = {
 };
 type InvestecGenericResponse<Data> = Status | InvestecGenericOKResponse<Data>;
 
+export type Realm = "business" | "private";
+
+export type Scope = "accounts" | "transactions";
+
 export type InvestecAuthResponse = Status | InvestecToken;
 
 export type InvestecToken = {
   access_token: string;
   token_type: "Bearer";
   expires_in: number;
-  scope: "accounts";
+  scope: Scope;
+  refresh_token?: string;
 };
 export type InvestecAccountsResponse = InvestecGenericResponse<{
   accounts: InvestecAccount[];

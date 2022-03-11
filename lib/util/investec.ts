@@ -12,7 +12,17 @@ import {
   InvestecSimulateExecutionInput,
   InvestecCardExecutionResponse,
   InvestecAccountTransferResponse,
+  Scope,
+  Realm,
 } from "./model";
+
+const RealmSelector: { [key in Realm]: "pb" | "bb" } = {
+  business: "bb",
+  private: "pb",
+};
+
+const INVESTEC_BASE_URL = "https://openapi.investec.com";
+
 const getBasicHeaders = (token: string) => {
   return {
     Authorization: `Bearer ${token}`,
@@ -32,7 +42,7 @@ export const getInvestecToken = async (
   clientSecret: string
 ): Promise<InvestecAuthResponse> => {
   const tokenResponse = await fetch(
-    "https://openapi.investec.com/identity/v2/oauth2/token",
+    `${INVESTEC_BASE_URL}/identity/v2/oauth2/token`,
     {
       method: "POST",
       body: `grant_type=client_credentials&scope=accounts`,
@@ -47,11 +57,65 @@ export const getInvestecToken = async (
   return safeResponse<InvestecAuthResponse>(tokenResponse);
 };
 
+export const getInvestecOAuthToken = async (
+  clientId: string,
+  clientSecret: string,
+  authCode: string,
+  redirectUri: string
+): Promise<InvestecAuthResponse> => {
+  const tokenResponse = await fetch(
+    `${INVESTEC_BASE_URL}/identity/v2/oauth2/token`,
+    {
+      method: "POST",
+      body: `grant_type=authorization_code&code=${authCode}&redirect_uri=${redirectUri}`,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic  ${Buffer.from(
+          `${clientId}:${clientSecret}`
+        ).toString("base64")} `,
+      },
+    }
+  );
+  return safeResponse<InvestecAuthResponse>(tokenResponse);
+};
+
+export const refreshInvestecOAuthToken = async (
+  clientId: string,
+  clientSecret: string,
+  refreshToken: string
+): Promise<InvestecAuthResponse> => {
+  const tokenResponse = await fetch(
+    `${INVESTEC_BASE_URL}/identity/v2/oauth2/token`,
+    {
+      method: "POST",
+      body: `grant_type=refresh_token&refresh_token=${refreshToken}`,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic  ${Buffer.from(
+          `${clientId}:${clientSecret}`
+        ).toString("base64")} `,
+      },
+    }
+  );
+  return safeResponse<InvestecAuthResponse>(tokenResponse);
+};
+
+export const getInvestecOAuthRedirectUrl = (
+  clientId: string,
+  scope: Scope[],
+  redirectUri: string
+): string => {
+  return `${INVESTEC_BASE_URL}/identity/v2/oauth2/authorize?scope=${scope.join(
+    " "
+  )}&client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+};
+
 export const getInvestecAccounts = async (
-  token: string
+  token: string,
+  realm: Realm = "private"
 ): Promise<InvestecAccountsResponse> => {
   const accountsResponse = await fetch(
-    `https://openapi.investec.com/za/pb/v1/accounts`,
+    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -63,10 +127,11 @@ export const getInvestecAccounts = async (
 
 export const getAccountBalance = async (
   token: string,
-  accountId: string
+  accountId: string,
+  realm: Realm = "private"
 ): Promise<InvestecAccountBalanceResponse> => {
   const balanceResponse = await fetch(
-    `https://openapi.investec.com/za/pb/v1/accounts/${accountId}/balance`,
+    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/${accountId}/balance`,
     {
       headers: { ...getBasicHeaders(token) },
     }
@@ -86,10 +151,13 @@ export const getInvestecTransactionsForAccount = async (
     fromDate?: string;
     toDate?: string;
     transactionType?: InvestecTransactionTransactionType;
-  }
+  },
+  realm: Realm = "private"
 ): Promise<InvestecAccountTransactionsResponse> => {
   const transactionsResponse = await fetch(
-    `https://openapi.investec.com/za/pb/v1/accounts/${accountId}/transactions?${
+    `${INVESTEC_BASE_URL}/za/${
+      RealmSelector[realm]
+    }/v1/accounts/${accountId}/transactions?${
       fromDate ? ` &fromDate=${fromDate}` : ""
     }${toDate ? `&toDate=${toDate}` : ""}
       ${transactionType ? `&transactionType=${transactionType}` : ""}`,
@@ -117,7 +185,8 @@ export const postInvestecTransferMultiple = async (
       myReference: string;
       theirReference: string;
     }>;
-  }
+  },
+  realm: Realm = "private"
 ): Promise<InvestecAccountTransferResponse> => {
   const body = {
     AccountId: fromAccountId,
@@ -129,7 +198,7 @@ export const postInvestecTransferMultiple = async (
     })),
   };
   const transferResponse = await fetch(
-    "https://openapi.investec.com/za/pb/v1/accounts/transfermultiple",
+    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/transfermultiple`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -145,14 +214,11 @@ export const postInvestecTransferMultiple = async (
 export const getInvestecCards = async (
   token: string
 ): Promise<InvestecCardsResponse> => {
-  const cardsResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards`,
-    {
-      headers: {
-        ...getBasicHeaders(token),
-      },
-    }
-  );
+  const cardsResponse = await fetch(`${INVESTEC_BASE_URL}/za/v1/cards`, {
+    headers: {
+      ...getBasicHeaders(token),
+    },
+  });
   return safeResponse<InvestecCardsResponse>(cardsResponse);
 };
 
@@ -161,7 +227,7 @@ export const getInvestecCardSavedCode = async (
   cardKey: string
 ): Promise<InvestecCardCodeResponse> => {
   const cardsResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/code`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -176,7 +242,7 @@ export const getInvestecCardPublishedCode = async (
   cardKey: string
 ): Promise<InvestecCardCodeResponse> => {
   const cardsResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/publishedcode`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/publishedcode`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -193,7 +259,7 @@ export const postInvestecCardSaveCode = async (
 ): Promise<InvestecCardCodeResponse> => {
   const body = { code };
   const response = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/code`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -213,7 +279,7 @@ export const postInvestecCardPublishSavedCode = async (
 ): Promise<InvestecCardCodeResponse> => {
   const body = { codeid: codeId, code: "" };
   const response = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/code`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -233,7 +299,7 @@ export const postInvestecSimulateExecuteFunctionCode = async (
 ): Promise<InvestecCardExecutionResponse> => {
   const body = { ...opts };
   const response = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/code/execute`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code/execute`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -251,7 +317,7 @@ export const getInvestecCardExecutions = async (
   cardKey: string
 ): Promise<InvestecCardExecutionResponse> => {
   const cardsResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/code/executions`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code/executions`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -266,7 +332,7 @@ export const getInvestecCardEnvironmentVariables = async (
   cardKey: string
 ): Promise<InvestecCardEnvironmentVariablesResponse> => {
   const envResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/environmentvariables`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/environmentvariables`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -283,7 +349,7 @@ export const postInvestecCardEnvironmentVariables = async (
 ): Promise<InvestecCardEnvironmentVariablesResponse> => {
   const body = { variables };
   const response = await fetch(
-    `https://openapi.investec.com/za/v1/cards/${cardKey}/environmentvariables`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/environmentvariables`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -300,7 +366,7 @@ export const getInvestecCardCountries = async (
   token: string
 ): Promise<InvestecCardNameCodeResponse> => {
   const envResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards/countries`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/countries`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -314,7 +380,7 @@ export const getInvestecCardCurrencies = async (
   token: string
 ): Promise<InvestecCardNameCodeResponse> => {
   const envResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards/currencies`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/currencies`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -328,7 +394,7 @@ export const getInvestecCardMerchants = async (
   token: string
 ): Promise<InvestecCardNameCodeResponse> => {
   const envResponse = await fetch(
-    `https://openapi.investec.com/za/v1/cards/merchants`,
+    `${INVESTEC_BASE_URL}/za/v1/cards/merchants`,
     {
       headers: {
         ...getBasicHeaders(token),

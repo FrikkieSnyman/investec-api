@@ -10,6 +10,7 @@ import {
   InvestecTransactionTransactionType,
   InvestecTransfer,
   isResponseBad,
+  Realm,
 } from "../util/model";
 
 export class Account implements InvestecAccount {
@@ -18,13 +19,14 @@ export class Account implements InvestecAccount {
   public accountName: string;
   public referenceName: string;
   public productName: string;
-
-  constructor(private client: Client, account: InvestecAccount) {
+  public realm: Realm;
+  constructor(private client: Client, account: InvestecAccount, realm: Realm) {
     this.accountId = account.accountId;
     this.accountNumber = account.accountNumber;
     this.accountName = account.accountName;
     this.referenceName = account.referenceName;
     this.productName = account.productName;
+    this.realm = realm;
   }
 
   public async getBalance() {
@@ -33,7 +35,8 @@ export class Account implements InvestecAccount {
     }
     const balance = await getAccountBalance(
       this.client.token.access_token,
-      this.accountId
+      this.accountId,
+      this.realm
     );
     if (isResponseBad(balance)) {
       throw new Error(
@@ -60,7 +63,8 @@ export class Account implements InvestecAccount {
     }
     const transactions = await getInvestecTransactionsForAccount(
       this.client.token.access_token,
-      { accountId: this.accountId, fromDate, toDate, transactionType }
+      { accountId: this.accountId, fromDate, toDate, transactionType },
+      this.realm
     );
     if (isResponseBad(transactions)) {
       throw new Error(
@@ -94,7 +98,8 @@ export class Account implements InvestecAccount {
           myReference: r.myReference,
           theirReference: r.theirReference,
         })),
-      }
+      },
+      this.realm
     );
     if (isResponseBad(transferResponse)) {
       throw new Error(
