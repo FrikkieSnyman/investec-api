@@ -12,7 +12,7 @@ import {
   isResponseBad,
   Realm,
 } from "../util/model";
-
+import * as camelcaseKeys from "camelcase-keys";
 export class Account implements InvestecAccount {
   public accountId: string;
   public accountNumber: string;
@@ -20,12 +20,15 @@ export class Account implements InvestecAccount {
   public referenceName: string;
   public productName: string;
   public realm: Realm;
-  constructor(private client: Client, account: InvestecAccount, realm: Realm) {
+  public meta: any;
+  constructor(private client: Client, _account: InvestecAccount, realm: Realm) {
+    const account = camelcaseKeys(_account);
     this.accountId = account.accountId;
     this.accountNumber = account.accountNumber;
     this.accountName = account.accountName;
     this.referenceName = account.referenceName;
     this.productName = account.productName;
+    this.meta = { ..._account };
     this.realm = realm;
   }
 
