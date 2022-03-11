@@ -26,7 +26,7 @@ await client.authenticate();
 ### List accounts
 
 ```
-const accounts = await client.getAccounts();
+const accounts = await client.getAccounts("private" | "business" = "private");
 ```
 
 This returns an array of `Account` objects.
@@ -48,8 +48,6 @@ const transactions = await account.getTransactions({fromDate: string, toDate: st
 ```
 
 #### Transfer
-
-_Early access_: This feature is early access, and you may need to request access to it.
 
 ```
 const transfer = await account.transfer([{recipientAccount: Account, amount: number, myReference: string, theirReference: string}]);
