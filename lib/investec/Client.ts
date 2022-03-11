@@ -38,7 +38,6 @@ export class Client {
     if (isResponseBad(response)) {
       throw new Error(`bad response from investec auth: ${response}`);
     }
-    console.log(response);
     this.token = response;
   }
 
