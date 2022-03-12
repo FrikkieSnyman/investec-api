@@ -18,6 +18,7 @@ export interface InvestecAccount {
   accountName: string;
   referenceName: string;
   productName: string;
+  meta: any;
 }
 
 export interface InvestecCard {
