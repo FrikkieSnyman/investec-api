@@ -39,7 +39,8 @@ const safeResponse = <T>(response: Response) => {
 
 export const getInvestecToken = async (
   clientId: string,
-  clientSecret: string
+  clientSecret: string,
+  apiKey: string
 ): Promise<InvestecAuthResponse> => {
   const tokenResponse = await fetch(
     `${INVESTEC_BASE_URL}/identity/v2/oauth2/token`,
@@ -51,6 +52,8 @@ export const getInvestecToken = async (
         Authorization: `Basic  ${Buffer.from(
           `${clientId}:${clientSecret}`
         ).toString("base64")} `,
+
+      "x-api-key": apiKey,
       },
     }
   );
@@ -60,6 +63,7 @@ export const getInvestecToken = async (
 export const getInvestecOAuthToken = async (
   clientId: string,
   clientSecret: string,
+  apiKey: string,
   authCode: string,
   redirectUri: string
 ): Promise<InvestecAuthResponse> => {
@@ -73,6 +77,7 @@ export const getInvestecOAuthToken = async (
         Authorization: `Basic  ${Buffer.from(
           `${clientId}:${clientSecret}`
         ).toString("base64")} `,
+      "x-api-key": apiKey,
       },
     }
   );

@@ -17,8 +17,8 @@ import { Account } from "./Account";
 import { Card } from "./Card";
 
 export class Client {
-  public static async create(clientId: string, clientSecret: string) {
-    const client = new Client(clientId, clientSecret);
+  public static async create(clientId: string, clientSecret: string, apiKey: string) {
+    const client = new Client(clientId, clientSecret, apiKey);
     await client.authenticate();
     return client;
   }
@@ -32,7 +32,7 @@ export class Client {
         this.token.refresh_token
       );
     } else {
-      response = await getInvestecToken(this.clientId, this.clientSecret);
+      response = await getInvestecToken(this.clientId, this.clientSecret, this.apiKey);
     }
 
     if (isResponseBad(response)) {
@@ -48,7 +48,7 @@ export class Client {
   }
 
   public getOAuthClientFromToken(token: InvestecToken) {
-    return new Client(this.clientId, this.clientSecret, token);
+    return new Client(this.clientId, this.clientSecret, this.apiKey, token);
   }
 
   public async getOAuthClient(
@@ -58,13 +58,14 @@ export class Client {
     const response = await getInvestecOAuthToken(
       this.clientId,
       this.clientSecret,
+      this.apiKey,
       authCode,
       redirectUri
     );
     if (isResponseBad(response)) {
       throw new Error(`bad response from investec oauth: ${response}`);
     }
-    return new Client(this.clientId, this.clientSecret, response);
+    return new Client(this.clientId, this.clientSecret, this.apiKey, response);
   }
 
   public async getAccounts(realm: Realm = "private"): Promise<Account[]> {
@@ -73,7 +74,7 @@ export class Client {
     }
     const accounts = await getInvestecAccounts(this.token.access_token, realm);
     if (isResponseBad(accounts)) {
-      throw new Error("not ok response from getting accounts: " + accounts);
+      throw new Error(`not ok response from getting accounts: ${JSON.stringify(accounts)}`);
     }
     return accounts.data.accounts.map((a) => new Account(this, a, realm));
   }
@@ -82,16 +83,17 @@ export class Client {
     if (!this.token) {
       throw new Error("client is not set up");
     }
-    const accounts = await getInvestecCards(this.token.access_token);
-    if (isResponseBad(accounts)) {
-      throw new Error("not ok response from getting cards: " + accounts);
+    const cards = await getInvestecCards(this.token.access_token);
+    if (isResponseBad(cards)) {
+      throw new Error("not ok response from getting cards: " + cards);
     }
-    return accounts.data.cards.map((c) => new Card(this, c));
+    return cards.data.cards.map((c) => new Card(this, c));
   }
 
   private constructor(
     private clientId: string,
     private clientSecret: string,
+    private apiKey: string,
     public token?: InvestecToken
   ) {}
 }
