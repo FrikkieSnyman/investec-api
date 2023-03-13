@@ -2,10 +2,13 @@ import { Client } from "..";
 import {
   getAccountBalance,
   getInvestecTransactionsForAccount,
+  postInvestecPayMultiple,
   postInvestecTransferMultiple,
 } from "../util/investec";
 import {
   InvestecAccount,
+  InvestecBeneficiary,
+  InvestecPayment,
   InvestecTransaction,
   InvestecTransactionTransactionType,
   InvestecTransfer,
@@ -112,6 +115,39 @@ export class Account implements InvestecAccount {
         }}`
       );
     }
-    return transferResponse.data.transferResponse.TransferResponses;
+    return transferResponse.data.TransferResponses;
+  }
+
+  public async pay(recipients: Array<{
+    beneficiary: InvestecBeneficiary;
+    myReference: string;
+    theirReference: string;
+    amount: number;
+  }>): Promise<InvestecPayment[]> {
+    if (!this.client.token) {
+      throw new Error("client is not set up");
+    }
+    const transferResponse = await postInvestecPayMultiple(
+      this.client.token.access_token,
+      {
+        fromAccountId: this.accountId,
+        toBeneficiaries: recipients.map((r) => ({
+          beneficiaryId: r.beneficiary.BeneficiaryId,
+          amount: r.amount,
+          myReference: r.myReference,
+          theirReference: r.theirReference,
+        })),
+      },
+      this.realm
+    );
+    if (isResponseBad(transferResponse)) {
+      throw new Error(
+        `not ok response while performing transfer for account: ${{
+          accountId: this.accountId,
+          response: transferResponse,
+        }}`
+      );
+    }
+    return transferResponse.data.TransferResponses;
   }
 }

@@ -1,5 +1,7 @@
 import {
   getInvestecAccounts,
+  getInvestecBeneficiaries,
+  getInvestecBeneficiaryCategories,
   getInvestecCards,
   getInvestecOAuthRedirectUrl,
   getInvestecOAuthToken,
@@ -8,6 +10,8 @@ import {
 } from "../util/investec";
 import {
   InvestecAuthResponse,
+  InvestecBeneficiary,
+  InvestecBeneficiaryCategory,
   InvestecToken,
   isResponseBad,
   Realm,
@@ -88,6 +92,28 @@ export class Client {
       throw new Error("not ok response from getting cards: " + cards);
     }
     return cards.data.cards.map((c) => new Card(this, c));
+  }
+
+  public async getBeneficiaries(): Promise<InvestecBeneficiary[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const beneficiaries = await getInvestecBeneficiaries(this.token.access_token);
+    if (isResponseBad(beneficiaries)) {
+      throw new Error("not ok response from getting cards: " + beneficiaries);
+    }
+    return beneficiaries.data;
+  }
+
+  public async getBeneficiaryCategories(): Promise<InvestecBeneficiaryCategory[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const beneficiaries = await getInvestecBeneficiaryCategories(this.token.access_token);
+    if (isResponseBad(beneficiaries)) {
+      throw new Error("not ok response from getting cards: " + beneficiaries);
+    }
+    return beneficiaries.data;
   }
 
   private constructor(
