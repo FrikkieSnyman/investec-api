@@ -114,6 +114,38 @@ export interface InvestecTransfer {
   AuthorisationRequired: boolean;
 }
 
+export interface InvestecPayment {
+  PaymentReferenceNumber: string;
+  PaymentDate: string;
+  Status: string;
+  BeneficiaryName: string;
+  BeneficiaryAccountId: string;
+  AuthorisationRequired: boolean;
+}
+
+export interface InvestecBeneficiary {
+  BeneficiaryId: string;
+  AccountNumber: string;
+  Code: string;
+  Bank: string;
+  BeneficiaryName: string;
+  LastPaymentAmount: string;
+  LastPaymentDate: string;
+  CellNo: string;
+  EmailAddress: string;
+  Name: string;
+  ReferenceAccountNumber: string;
+  ReferenceName: string;
+  CategoryId: string;
+  profileId: string;
+}
+
+export interface InvestecBeneficiaryCategory {
+  id: string;
+  isDefault: string;
+  name: string;
+}
+
 type Status = { status: number };
 type InvestecGenericOKResponse<Data> = {
   data: Data;
@@ -151,9 +183,18 @@ export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
 }>;
 
 export type InvestecAccountTransferResponse = InvestecGenericResponse<{
-  transferResponse: { TransferResponses: InvestecTransfer[] };
+  TransferResponses: InvestecTransfer[];
   ErrorMessage: any;
 }>;
+
+export type InvestecAccountPaymentResponse = InvestecGenericResponse<{
+  TransferResponses: InvestecPayment[];
+  ErrorMessage: string
+}>;
+
+export type InvestecBeneficiariesResponse = InvestecGenericResponse<InvestecBeneficiary[]>;
+
+export type InvestecBeneficiaryCategoriesResponse = InvestecGenericResponse<InvestecBeneficiaryCategory[]>;
 
 export type InvestecCardsResponse = InvestecGenericResponse<{
   cards: InvestecCard[];

@@ -14,6 +14,9 @@ import {
   InvestecAccountTransferResponse,
   Scope,
   Realm,
+  InvestecAccountPaymentResponse,
+  InvestecBeneficiariesResponse,
+  InvestecBeneficiaryCategoriesResponse,
 } from "./model";
 
 const RealmSelector: { [key in Realm]: "pb" | "bb" } = {
@@ -194,16 +197,15 @@ export const postInvestecTransferMultiple = async (
   realm: Realm = "private"
 ): Promise<InvestecAccountTransferResponse> => {
   const body = {
-    AccountId: fromAccountId,
-    TransferList: toAccounts.map((t) => ({
-      BeneficiaryAccountId: t.accountId,
-      Amount: t.amount,
-      MyReference: t.myReference,
-      TheirReference: t.theirReference,
+    transferList: toAccounts.map((t) => ({
+      beneficiaryAccountId: t.accountId,
+      amount: t.amount,
+      myReference: t.myReference,
+      theirReference: t.theirReference,
     })),
   };
   const transferResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/transfermultiple`,
+    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/${fromAccountId}/transfermultiple`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -215,6 +217,57 @@ export const postInvestecTransferMultiple = async (
   );
   return safeResponse<InvestecAccountTransferResponse>(transferResponse);
 };
+
+export const postInvestecPayMultiple = async (
+  token: string,
+  {
+    fromAccountId,
+    toBeneficiaries,
+  }: {
+    fromAccountId: string;
+    toBeneficiaries: Array<{
+      beneficiaryId: string;
+      amount: number;
+      myReference: string;
+      theirReference: string;
+    }>;
+  },
+  realm: Realm = "private"
+): Promise<InvestecAccountPaymentResponse> => {
+  const body = {
+    paymentList: toBeneficiaries
+  };
+  const transferResponse = await fetch(
+    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/${fromAccountId}/paymultiple`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        ...getBasicHeaders(token),
+      },
+    }
+  );
+  return safeResponse<InvestecAccountPaymentResponse>(transferResponse);
+};
+
+export const getInvestecBeneficiaries = async (token: string) => {
+  const beneficiariesResponse = await fetch(`${INVESTEC_BASE_URL}/za/pb/v1/accounts/beneficiaries`, {
+    headers: {
+      ...getBasicHeaders(token),
+    },
+  });
+  return safeResponse<InvestecBeneficiariesResponse>(beneficiariesResponse);
+}
+
+export const getInvestecBeneficiaryCategories = async (token: string) => {
+  const beneficiariesResponse = await fetch(`${INVESTEC_BASE_URL}/za/pb/v1/accounts/beneficiarycategories`, {
+    headers: {
+      ...getBasicHeaders(token),
+    },
+  });
+  return safeResponse<InvestecBeneficiaryCategoriesResponse>(beneficiariesResponse);
+}
 
 export const getInvestecCards = async (
   token: string
