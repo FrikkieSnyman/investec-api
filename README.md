@@ -53,6 +53,26 @@ const transactions = await account.getTransactions({fromDate: string, toDate: st
 const transfer = await account.transfer([{recipientAccount: Account, amount: number, myReference: string, theirReference: string}]);
 ```
 
+#### Payments
+
+```
+const payment - await account.pay([{ beneficiary: InvestecBeneficiary; myReference: string; theirReference: string; amount: number;}]);
+```
+
+## Beneficiaries
+
+### List beneficiaries
+
+```
+const beneficiaries = await client.getBeneficiaries();
+```
+
+### List beneficiary categories
+
+```
+const beneficiaryCategories = await client.getBeneficiaryCategories();
+```
+
 ## Cards
 
 ### List cards
