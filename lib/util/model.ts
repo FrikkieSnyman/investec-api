@@ -124,19 +124,19 @@ export interface InvestecPayment {
 }
 
 export interface InvestecBeneficiary {
-  BeneficiaryId: string;
-  AccountNumber: string;
-  Code: string;
-  Bank: string;
-  BeneficiaryName: string;
-  LastPaymentAmount: string;
-  LastPaymentDate: string;
-  CellNo: string;
-  EmailAddress: string;
-  Name: string;
-  ReferenceAccountNumber: string;
-  ReferenceName: string;
-  CategoryId: string;
+  beneficiaryId: string;
+  accountNumber: string;
+  code: string;
+  bank: string;
+  beneficiaryName: string;
+  lastPaymentAmount: string;
+  lastPaymentDate: string;
+  cellNo: string;
+  emailAddress: string;
+  name: string;
+  referenceAccountNumber: string;
+  referenceName: string;
+  categoryId: string;
   profileId: string;
 }
 
