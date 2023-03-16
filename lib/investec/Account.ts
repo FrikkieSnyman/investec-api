@@ -132,7 +132,7 @@ export class Account implements InvestecAccount {
       {
         fromAccountId: this.accountId,
         toBeneficiaries: recipients.map((r) => ({
-          beneficiaryId: r.beneficiary.BeneficiaryId,
+          beneficiaryId: r.beneficiary.beneficiaryId,
           amount: r.amount,
           myReference: r.myReference,
           theirReference: r.theirReference,
