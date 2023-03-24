@@ -50,7 +50,7 @@ const transactions = await account.getTransactions({fromDate: string, toDate: st
 #### Transfer
 
 ```
-const transfer = await account.transfer([{recipientAccount: Account, amount: number, myReference: string, theirReference: string}]);
+const transfer = await account.transfer([{account: Account, amount: number, myReference: string, theirReference: string}]);
 ```
 
 #### Payments
