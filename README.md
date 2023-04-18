@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/investec-api.svg)](https://badge.fury.io/js/investec-api)
+
 # investec-api
 
 An NPM module to interact with Investec's Open API
@@ -10,7 +12,7 @@ An NPM module to interact with Investec's Open API
 
 ```
 import { Client } from "investec-api";
-const client = await Client.create(id, secret);
+const client = await Client.create(id, secret, apiKey);
 ```
 
 This creates an access token that the client will use to interact with the API.
@@ -56,7 +58,7 @@ const transfer = await account.transfer([{account: Account, amount: number, myRe
 #### Payments
 
 ```
-const payment - await account.pay([{ beneficiary: InvestecBeneficiary; myReference: string; theirReference: string; amount: number;}]);
+const payment = await account.pay([{ beneficiary: InvestecBeneficiary; myReference: string; theirReference: string; amount: number;}]);
 ```
 
 ## Beneficiaries
@@ -157,3 +159,11 @@ const variables = await card.getEnvironmentVariables();
 ```
 const variables = await card.updateEnvironmentVariables({...});
 ```
+
+## Investec Programmable Banking Docs
+
+You can read more about Investec's Programmable Banking here:  https://developer.investec.com/za/api-products/documentation/U0ElMjBQQiUyMEFjY291bnQlMjBJbmZvcm1hdGlvbg%3D%3D
+
+This library is merely an interface yo the above.
+
+
