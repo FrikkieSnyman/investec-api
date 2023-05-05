@@ -46,19 +46,37 @@ const balance = await account.getBalance();
 #### Get transactions
 
 ```
-const transactions = await account.getTransactions({fromDate: string, toDate: string, transactionType: string});
+const transactions = await account.getTransactions({
+  fromDate: string;
+  toDate: string;
+  transactionType: string;
+});
 ```
 
 #### Transfer
 
 ```
-const transfer = await account.transfer([{account: Account, amount: number, myReference: string, theirReference: string}]);
+const transfer = await account.transfer([
+  {
+    account: Account;
+    amount: number;
+    myReference: string;
+    theirReference: string;
+  }
+]);
 ```
 
 #### Payments
 
 ```
-const payment = await account.pay([{ beneficiary: InvestecBeneficiary; myReference: string; theirReference: string; amount: number;}]);
+const payment = await account.pay([
+  {
+    beneficiary: InvestecBeneficiary;
+    myReference: string;
+    theirReference: string;
+    amount: number;
+   }
+]);
 ```
 
 ## Beneficiaries
