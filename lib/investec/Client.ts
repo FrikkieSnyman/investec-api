@@ -20,9 +20,23 @@ import {
 import { Account } from "./Account";
 import { Card } from "./Card";
 
+const INVESTEC_BASE_URL = "https://openapi.investec.com";
+const INVESTEC_SANDBOX_URL = "https://openapisandbox.investec.com";
+
+function useBaseOrSandboxUrl(sandbox?: boolean) {
+  if (sandbox) {
+    return INVESTEC_SANDBOX_URL;
+  }
+  return INVESTEC_BASE_URL;
+}
+
 export class Client {
-  public static async create(clientId: string, clientSecret: string, apiKey: string) {
-    const client = new Client(clientId, clientSecret, apiKey);
+  public get baseUrl() {
+    return useBaseOrSandboxUrl(this.sandbox);
+  }
+
+  public static async create(clientId: string, clientSecret: string, apiKey: string, token: InvestecToken, sandbox: boolean) {
+    const client = new Client(clientId, clientSecret, apiKey, undefined, sandbox);
     await client.authenticate();
     return client;
   }
@@ -33,10 +47,11 @@ export class Client {
       response = await refreshInvestecOAuthToken(
         this.clientId,
         this.clientSecret,
-        this.token.refresh_token
+        this.token.refresh_token,
+        this.baseUrl
       );
     } else {
-      response = await getInvestecToken(this.clientId, this.clientSecret, this.apiKey);
+      response = await getInvestecToken(this.clientId, this.clientSecret, this.apiKey, this.baseUrl);
     }
 
     if (isResponseBad(response)) {
@@ -47,7 +62,7 @@ export class Client {
 
   public getAuthRedirect(redirectUrl: string, scope: Scope[]): string {
     return encodeURI(
-      getInvestecOAuthRedirectUrl(this.clientId, scope, redirectUrl)
+      getInvestecOAuthRedirectUrl(this.clientId, scope, redirectUrl, this.baseUrl)
     );
   }
 
@@ -64,7 +79,8 @@ export class Client {
       this.clientSecret,
       this.apiKey,
       authCode,
-      redirectUri
+      redirectUri,
+      this.baseUrl
     );
     if (isResponseBad(response)) {
       throw new Error(`bad response from investec oauth: ${response}`);
@@ -76,7 +92,7 @@ export class Client {
     if (!this.token) {
       throw new Error("client is not set up");
     }
-    const accounts = await getInvestecAccounts(this.token.access_token, realm);
+    const accounts = await getInvestecAccounts(this.token.access_token, realm, this.baseUrl);
     if (isResponseBad(accounts)) {
       throw new Error(`not ok response from getting accounts: ${JSON.stringify(accounts)}`);
     }
@@ -87,7 +103,7 @@ export class Client {
     if (!this.token) {
       throw new Error("client is not set up");
     }
-    const cards = await getInvestecCards(this.token.access_token);
+    const cards = await getInvestecCards(this.token.access_token, this.baseUrl);
     if (isResponseBad(cards)) {
       throw new Error("not ok response from getting cards: " + cards);
     }
@@ -98,7 +114,7 @@ export class Client {
     if (!this.token) {
       throw new Error("client is not set up");
     }
-    const beneficiaries = await getInvestecBeneficiaries(this.token.access_token);
+    const beneficiaries = await getInvestecBeneficiaries(this.token.access_token, this.baseUrl);
     if (isResponseBad(beneficiaries)) {
       throw new Error("not ok response from getting cards: " + beneficiaries);
     }
@@ -109,10 +125,11 @@ export class Client {
     if (!this.token) {
       throw new Error("client is not set up");
     }
-    const beneficiaries = await getInvestecBeneficiaryCategories(this.token.access_token);
+    const beneficiaries = await getInvestecBeneficiaryCategories(this.token.access_token, this.baseUrl);
     if (isResponseBad(beneficiaries)) {
       throw new Error("not ok response from getting cards: " + beneficiaries);
     }
+
     return beneficiaries.data;
   }
 
@@ -120,6 +137,7 @@ export class Client {
     private clientId: string,
     private clientSecret: string,
     private apiKey: string,
-    public token?: InvestecToken
+    public token?: InvestecToken,
+    private sandbox?: boolean,
   ) {}
 }

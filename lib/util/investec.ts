@@ -24,8 +24,6 @@ const RealmSelector: { [key in Realm]: "pb" | "bb" } = {
   private: "pb",
 };
 
-const INVESTEC_BASE_URL = "https://openapi.investec.com";
-
 const getBasicHeaders = (token: string) => {
   return {
     Authorization: `Bearer ${token}`,
@@ -43,10 +41,12 @@ const safeResponse = <T>(response: Response) => {
 export const getInvestecToken = async (
   clientId: string,
   clientSecret: string,
-  apiKey: string
+  apiKey: string,
+  baseUrl: string
 ): Promise<InvestecAuthResponse> => {
+  console.log(baseUrl)
   const tokenResponse = await fetch(
-    `${INVESTEC_BASE_URL}/identity/v2/oauth2/token`,
+    `${baseUrl}/identity/v2/oauth2/token`,
     {
       method: "POST",
       body: `grant_type=client_credentials&scope=accounts`,
@@ -68,10 +68,11 @@ export const getInvestecOAuthToken = async (
   clientSecret: string,
   apiKey: string,
   authCode: string,
-  redirectUri: string
+  redirectUri: string,
+  baseUrl: string,
 ): Promise<InvestecAuthResponse> => {
   const tokenResponse = await fetch(
-    `${INVESTEC_BASE_URL}/identity/v2/oauth2/token`,
+    `${baseUrl}/identity/v2/oauth2/token`,
     {
       method: "POST",
       body: `grant_type=authorization_code&code=${authCode}&redirect_uri=${redirectUri}`,
@@ -90,10 +91,11 @@ export const getInvestecOAuthToken = async (
 export const refreshInvestecOAuthToken = async (
   clientId: string,
   clientSecret: string,
-  refreshToken: string
+  refreshToken: string,
+  baseUrl: string,
 ): Promise<InvestecAuthResponse> => {
   const tokenResponse = await fetch(
-    `${INVESTEC_BASE_URL}/identity/v2/oauth2/token`,
+    `${baseUrl}/identity/v2/oauth2/token`,
     {
       method: "POST",
       body: `grant_type=refresh_token&refresh_token=${refreshToken}`,
@@ -111,19 +113,21 @@ export const refreshInvestecOAuthToken = async (
 export const getInvestecOAuthRedirectUrl = (
   clientId: string,
   scope: Scope[],
-  redirectUri: string
+  redirectUri: string,
+  baseUrl: string,
 ): string => {
-  return `${INVESTEC_BASE_URL}/identity/v2/oauth2/authorize?scope=${scope.join(
+  return `${baseUrl}/identity/v2/oauth2/authorize?scope=${scope.join(
     " "
   )}&client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
 };
 
 export const getInvestecAccounts = async (
   token: string,
-  realm: Realm = "private"
+  realm: Realm = "private",
+  baseUrl: string,
 ): Promise<InvestecAccountsResponse> => {
   const accountsResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts`,
+    `${baseUrl}/za/${RealmSelector[realm]}/v1/accounts`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -136,10 +140,11 @@ export const getInvestecAccounts = async (
 export const getAccountBalance = async (
   token: string,
   accountId: string,
-  realm: Realm = "private"
+  realm: Realm = "private",
+  baseUrl: string,
 ): Promise<InvestecAccountBalanceResponse> => {
   const balanceResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/${accountId}/balance`,
+    `${baseUrl}/za/${RealmSelector[realm]}/v1/accounts/${accountId}/balance`,
     {
       headers: { ...getBasicHeaders(token) },
     }
@@ -160,10 +165,11 @@ export const getInvestecTransactionsForAccount = async (
     toDate?: string;
     transactionType?: InvestecTransactionTransactionType;
   },
-  realm: Realm = "private"
+  realm: Realm = "private",
+  baseUrl: string,
 ): Promise<InvestecAccountTransactionsResponse> => {
   const transactionsResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/${
+    `${baseUrl}/za/${
       RealmSelector[realm]
     }/v1/accounts/${accountId}/transactions?${
       fromDate ? ` &fromDate=${fromDate}` : ""
@@ -194,7 +200,8 @@ export const postInvestecTransferMultiple = async (
       theirReference: string;
     }>;
   },
-  realm: Realm = "private"
+  realm: Realm = "private",
+  baseUrl: string,
 ): Promise<InvestecAccountTransferResponse> => {
   const body = {
     transferList: toAccounts.map((t) => ({
@@ -205,7 +212,7 @@ export const postInvestecTransferMultiple = async (
     })),
   };
   const transferResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/${fromAccountId}/transfermultiple`,
+    `${baseUrl}/za/${RealmSelector[realm]}/v1/accounts/${fromAccountId}/transfermultiple`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -232,13 +239,14 @@ export const postInvestecPayMultiple = async (
       theirReference: string;
     }>;
   },
-  realm: Realm = "private"
+  realm: Realm = "private",
+  baseUrl: string,
 ): Promise<InvestecAccountPaymentResponse> => {
   const body = {
     paymentList: toBeneficiaries
   };
   const transferResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/${fromAccountId}/paymultiple`,
+    `${baseUrl}/za/${RealmSelector[realm]}/v1/accounts/${fromAccountId}/paymultiple`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -251,8 +259,8 @@ export const postInvestecPayMultiple = async (
   return safeResponse<InvestecAccountPaymentResponse>(transferResponse);
 };
 
-export const getInvestecBeneficiaries = async (token: string) => {
-  const beneficiariesResponse = await fetch(`${INVESTEC_BASE_URL}/za/pb/v1/accounts/beneficiaries`, {
+export const getInvestecBeneficiaries = async (token: string, baseUrl: string) => {
+  const beneficiariesResponse = await fetch(`${baseUrl}/za/pb/v1/accounts/beneficiaries`, {
     headers: {
       ...getBasicHeaders(token),
     },
@@ -260,8 +268,8 @@ export const getInvestecBeneficiaries = async (token: string) => {
   return safeResponse<InvestecBeneficiariesResponse>(beneficiariesResponse);
 }
 
-export const getInvestecBeneficiaryCategories = async (token: string) => {
-  const beneficiariesResponse = await fetch(`${INVESTEC_BASE_URL}/za/pb/v1/accounts/beneficiarycategories`, {
+export const getInvestecBeneficiaryCategories = async (token: string, baseUrl: string) => {
+  const beneficiariesResponse = await fetch(`${baseUrl}/za/pb/v1/accounts/beneficiarycategories`, {
     headers: {
       ...getBasicHeaders(token),
     },
@@ -270,9 +278,10 @@ export const getInvestecBeneficiaryCategories = async (token: string) => {
 }
 
 export const getInvestecCards = async (
-  token: string
+  token: string,
+  baseUrl: string,
 ): Promise<InvestecCardsResponse> => {
-  const cardsResponse = await fetch(`${INVESTEC_BASE_URL}/za/v1/cards`, {
+  const cardsResponse = await fetch(`${baseUrl}/za/v1/cards`, {
     headers: {
       ...getBasicHeaders(token),
     },
@@ -282,10 +291,11 @@ export const getInvestecCards = async (
 
 export const getInvestecCardSavedCode = async (
   token: string,
-  cardKey: string
+  cardKey: string,
+  baseUrl: string,
 ): Promise<InvestecCardCodeResponse> => {
   const cardsResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code`,
+    `${baseUrl}/za/v1/cards/${cardKey}/code`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -297,10 +307,11 @@ export const getInvestecCardSavedCode = async (
 
 export const getInvestecCardPublishedCode = async (
   token: string,
-  cardKey: string
+  cardKey: string,
+  baseUrl: string,
 ): Promise<InvestecCardCodeResponse> => {
   const cardsResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/publishedcode`,
+    `${baseUrl}/za/v1/cards/${cardKey}/publishedcode`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -313,11 +324,12 @@ export const getInvestecCardPublishedCode = async (
 export const postInvestecCardSaveCode = async (
   token: string,
   cardKey: string,
-  code: string
+  code: string,
+  baseUrl: string,
 ): Promise<InvestecCardCodeResponse> => {
   const body = { code };
   const response = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code`,
+    `${baseUrl}/za/v1/cards/${cardKey}/code`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -333,11 +345,12 @@ export const postInvestecCardSaveCode = async (
 export const postInvestecCardPublishSavedCode = async (
   token: string,
   cardKey: string,
-  codeId: string
+  codeId: string,
+  baseUrl: string,
 ): Promise<InvestecCardCodeResponse> => {
   const body = { codeid: codeId, code: "" };
   const response = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code`,
+    `${baseUrl}/za/v1/cards/${cardKey}/code`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -353,11 +366,12 @@ export const postInvestecCardPublishSavedCode = async (
 export const postInvestecSimulateExecuteFunctionCode = async (
   token: string,
   cardKey: string,
-  opts: InvestecSimulateExecutionInput
+  opts: InvestecSimulateExecutionInput,
+  baseUrl: string,
 ): Promise<InvestecCardExecutionResponse> => {
   const body = { ...opts };
   const response = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code/execute`,
+    `${baseUrl}/za/v1/cards/${cardKey}/code/execute`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -372,10 +386,11 @@ export const postInvestecSimulateExecuteFunctionCode = async (
 
 export const getInvestecCardExecutions = async (
   token: string,
-  cardKey: string
+  cardKey: string,
+  baseUrl: string,
 ): Promise<InvestecCardExecutionResponse> => {
   const cardsResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code/executions`,
+    `${baseUrl}/za/v1/cards/${cardKey}/code/executions`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -387,10 +402,11 @@ export const getInvestecCardExecutions = async (
 
 export const getInvestecCardEnvironmentVariables = async (
   token: string,
-  cardKey: string
+  cardKey: string,
+  baseUrl: string,
 ): Promise<InvestecCardEnvironmentVariablesResponse> => {
   const envResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/environmentvariables`,
+    `${baseUrl}/za/v1/cards/${cardKey}/environmentvariables`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -403,11 +419,12 @@ export const getInvestecCardEnvironmentVariables = async (
 export const postInvestecCardEnvironmentVariables = async (
   token: string,
   cardKey: string,
-  variables: { [key in string]: string | number | boolean | Object }
+  variables: { [key in string]: string | number | boolean | Object },
+  baseUrl: string,
 ): Promise<InvestecCardEnvironmentVariablesResponse> => {
   const body = { variables };
   const response = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/environmentvariables`,
+    `${baseUrl}/za/v1/cards/${cardKey}/environmentvariables`,
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -421,10 +438,11 @@ export const postInvestecCardEnvironmentVariables = async (
 };
 
 export const getInvestecCardCountries = async (
-  token: string
+  token: string,
+  baseUrl: string,
 ): Promise<InvestecCardNameCodeResponse> => {
   const envResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/countries`,
+    `${baseUrl}/za/v1/cards/countries`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -435,10 +453,11 @@ export const getInvestecCardCountries = async (
 };
 
 export const getInvestecCardCurrencies = async (
-  token: string
+  token: string,
+  baseUrl: string,
 ): Promise<InvestecCardNameCodeResponse> => {
   const envResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/currencies`,
+    `${baseUrl}/za/v1/cards/currencies`,
     {
       headers: {
         ...getBasicHeaders(token),
@@ -449,10 +468,11 @@ export const getInvestecCardCurrencies = async (
 };
 
 export const getInvestecCardMerchants = async (
-  token: string
+  token: string,
+  baseUrl: string,
 ): Promise<InvestecCardNameCodeResponse> => {
   const envResponse = await fetch(
-    `${INVESTEC_BASE_URL}/za/v1/cards/merchants`,
+    `${baseUrl}/za/v1/cards/merchants`,
     {
       headers: {
         ...getBasicHeaders(token),

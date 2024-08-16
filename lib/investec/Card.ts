@@ -29,7 +29,7 @@ export class Card implements InvestecCard {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    const response = await getInvestecCardCountries(client.token.access_token);
+    const response = await getInvestecCardCountries(client.token.access_token, client.baseUrl);
     if (isResponseBad(response)) {
       throw new Error(`error getting countries: ${{ response }}`);
     }
@@ -41,7 +41,7 @@ export class Card implements InvestecCard {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    const response = await getInvestecCardCurrencies(client.token.access_token);
+    const response = await getInvestecCardCurrencies(client.token.access_token, client.baseUrl);
     if (isResponseBad(response)) {
       throw new Error(`error getting countries: ${{ response }}`);
     }
@@ -53,7 +53,7 @@ export class Card implements InvestecCard {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    const response = await getInvestecCardMerchants(client.token.access_token);
+    const response = await getInvestecCardMerchants(client.token.access_token, client.baseUrl);
     if (isResponseBad(response)) {
       throw new Error(`error getting countries: ${{ response }}`);
     }
@@ -82,7 +82,8 @@ export class Card implements InvestecCard {
     }
     const savedCode = await getInvestecCardSavedCode(
       this.client.token.access_token,
-      this.CardKey
+      this.CardKey,
+      this.client.baseUrl,
     );
     if (isResponseBad(savedCode)) {
       throw new Error(
@@ -101,7 +102,8 @@ export class Card implements InvestecCard {
     }
     const publishedCode = await getInvestecCardPublishedCode(
       this.client.token.access_token,
-      this.CardKey
+      this.CardKey,
+      this.client.baseUrl,
     );
     if (isResponseBad(publishedCode)) {
       throw new Error(
@@ -122,7 +124,8 @@ export class Card implements InvestecCard {
     const savedCode = await postInvestecCardSaveCode(
       this.client.token.access_token,
       this.CardKey,
-      code
+      code,
+      this.client.baseUrl,
     );
     if (isResponseBad(savedCode)) {
       throw new Error(
@@ -143,7 +146,8 @@ export class Card implements InvestecCard {
     const publishedCode = await postInvestecCardPublishSavedCode(
       this.client.token.access_token,
       this.CardKey,
-      codeId
+      codeId,
+      this.client.baseUrl,
     );
     if (isResponseBad(publishedCode)) {
       throw new Error(
@@ -166,7 +170,8 @@ export class Card implements InvestecCard {
     const execution = await postInvestecSimulateExecuteFunctionCode(
       this.client.token.access_token,
       this.CardKey,
-      opts
+      opts,
+      this.client.baseUrl,
     );
     if (isResponseBad(execution)) {
       throw new Error(
@@ -186,7 +191,8 @@ export class Card implements InvestecCard {
 
     const execution = await getInvestecCardExecutions(
       this.client.token.access_token,
-      this.CardKey
+      this.CardKey,
+      this.client.baseUrl,
     );
     if (isResponseBad(execution)) {
       throw new Error(
@@ -206,7 +212,8 @@ export class Card implements InvestecCard {
 
     const execution = await getInvestecCardEnvironmentVariables(
       this.client.token.access_token,
-      this.CardKey
+      this.CardKey,
+      this.client.baseUrl,
     );
     if (isResponseBad(execution)) {
       throw new Error(
@@ -229,7 +236,8 @@ export class Card implements InvestecCard {
     const execution = await postInvestecCardEnvironmentVariables(
       this.client.token.access_token,
       this.CardKey,
-      variables
+      variables,
+      this.client.baseUrl,
     );
     if (isResponseBad(execution)) {
       throw new Error(

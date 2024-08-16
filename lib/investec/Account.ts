@@ -42,7 +42,8 @@ export class Account implements InvestecAccount {
     const balance = await getAccountBalance(
       this.client.token.access_token,
       this.accountId,
-      this.realm
+      this.realm,
+      this.client.baseUrl
     );
     if (isResponseBad(balance)) {
       throw new Error(
@@ -70,7 +71,8 @@ export class Account implements InvestecAccount {
     const transactions = await getInvestecTransactionsForAccount(
       this.client.token.access_token,
       { accountId: this.accountId, fromDate, toDate, transactionType },
-      this.realm
+      this.realm,
+      this.client.baseUrl
     );
     if (isResponseBad(transactions)) {
       throw new Error(
@@ -105,7 +107,8 @@ export class Account implements InvestecAccount {
           theirReference: r.theirReference,
         })),
       },
-      this.realm
+      this.realm,
+      this.client.baseUrl
     );
     if (isResponseBad(transferResponse)) {
       throw new Error(
@@ -138,7 +141,8 @@ export class Account implements InvestecAccount {
           theirReference: r.theirReference,
         })),
       },
-      this.realm
+      this.realm,
+      this.client.baseUrl
     );
     if (isResponseBad(transferResponse)) {
       throw new Error(
