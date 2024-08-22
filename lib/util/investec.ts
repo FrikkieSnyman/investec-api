@@ -24,8 +24,6 @@ const RealmSelector: { [key in Realm]: "pb" | "bb" } = {
   private: "pb",
 };
 
-const INVESTEC_BASE_URL = "https://openapi.investec.com";
-
 const getBasicHeaders = (token: string) => {
   return {
     Authorization: `Bearer ${token}`,
