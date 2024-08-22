@@ -1,18 +1,5 @@
 import { Client } from "..";
 import {
-  getInvestecCardCountries,
-  getInvestecCardCurrencies,
-  getInvestecCardEnvironmentVariables,
-  getInvestecCardExecutions,
-  getInvestecCardMerchants,
-  getInvestecCardPublishedCode,
-  getInvestecCardSavedCode,
-  postInvestecCardEnvironmentVariables,
-  postInvestecCardPublishSavedCode,
-  postInvestecCardSaveCode,
-  postInvestecSimulateExecuteFunctionCode,
-} from "../util/investec";
-import {
   InvestecCard,
   InvestecCardCode,
   InvestecCardEnvironmentVariables,
@@ -29,7 +16,9 @@ export class Card implements InvestecCard {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    const response = await getInvestecCardCountries(client.token.access_token);
+    const response = await client.ApiClient.getInvestecCardCountries(
+      client.token.access_token
+    );
     if (isResponseBad(response)) {
       throw new Error(`error getting countries: ${{ response }}`);
     }
@@ -41,7 +30,9 @@ export class Card implements InvestecCard {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    const response = await getInvestecCardCurrencies(client.token.access_token);
+    const response = await client.ApiClient.getInvestecCardCurrencies(
+      client.token.access_token
+    );
     if (isResponseBad(response)) {
       throw new Error(`error getting countries: ${{ response }}`);
     }
@@ -53,7 +44,9 @@ export class Card implements InvestecCard {
     if (!client.token) {
       throw new Error("client is not set up");
     }
-    const response = await getInvestecCardMerchants(client.token.access_token);
+    const response = await client.ApiClient.getInvestecCardMerchants(
+      client.token.access_token
+    );
     if (isResponseBad(response)) {
       throw new Error(`error getting countries: ${{ response }}`);
     }
@@ -80,7 +73,7 @@ export class Card implements InvestecCard {
     if (!this.client.token) {
       throw new Error("client is not set up");
     }
-    const savedCode = await getInvestecCardSavedCode(
+    const savedCode = await this.client.ApiClient.getInvestecCardSavedCode(
       this.client.token.access_token,
       this.CardKey
     );
@@ -99,10 +92,11 @@ export class Card implements InvestecCard {
     if (!this.client.token) {
       throw new Error("client is not set up");
     }
-    const publishedCode = await getInvestecCardPublishedCode(
-      this.client.token.access_token,
-      this.CardKey
-    );
+    const publishedCode =
+      await this.client.ApiClient.getInvestecCardPublishedCode(
+        this.client.token.access_token,
+        this.CardKey
+      );
     if (isResponseBad(publishedCode)) {
       throw new Error(
         `not ok response while getting published code: ${{
@@ -119,7 +113,7 @@ export class Card implements InvestecCard {
       throw new Error("client is not set up");
     }
 
-    const savedCode = await postInvestecCardSaveCode(
+    const savedCode = await this.client.ApiClient.postInvestecCardSaveCode(
       this.client.token.access_token,
       this.CardKey,
       code
@@ -140,11 +134,12 @@ export class Card implements InvestecCard {
       throw new Error("client is not set up");
     }
 
-    const publishedCode = await postInvestecCardPublishSavedCode(
-      this.client.token.access_token,
-      this.CardKey,
-      codeId
-    );
+    const publishedCode =
+      await this.client.ApiClient.postInvestecCardPublishSavedCode(
+        this.client.token.access_token,
+        this.CardKey,
+        codeId
+      );
     if (isResponseBad(publishedCode)) {
       throw new Error(
         `not ok response while updating saved code: ${{
@@ -163,11 +158,12 @@ export class Card implements InvestecCard {
       throw new Error("client is not set up");
     }
 
-    const execution = await postInvestecSimulateExecuteFunctionCode(
-      this.client.token.access_token,
-      this.CardKey,
-      opts
-    );
+    const execution =
+      await this.client.ApiClient.postInvestecSimulateExecuteFunctionCode(
+        this.client.token.access_token,
+        this.CardKey,
+        opts
+      );
     if (isResponseBad(execution)) {
       throw new Error(
         `not ok response while updating saved code: ${{
@@ -184,7 +180,7 @@ export class Card implements InvestecCard {
       throw new Error("client is not set up");
     }
 
-    const execution = await getInvestecCardExecutions(
+    const execution = await this.client.ApiClient.getInvestecCardExecutions(
       this.client.token.access_token,
       this.CardKey
     );
@@ -204,10 +200,11 @@ export class Card implements InvestecCard {
       throw new Error("client is not set up");
     }
 
-    const execution = await getInvestecCardEnvironmentVariables(
-      this.client.token.access_token,
-      this.CardKey
-    );
+    const execution =
+      await this.client.ApiClient.getInvestecCardEnvironmentVariables(
+        this.client.token.access_token,
+        this.CardKey
+      );
     if (isResponseBad(execution)) {
       throw new Error(
         `not ok response while updating saved code: ${{
@@ -226,11 +223,12 @@ export class Card implements InvestecCard {
       throw new Error("client is not set up");
     }
 
-    const execution = await postInvestecCardEnvironmentVariables(
-      this.client.token.access_token,
-      this.CardKey,
-      variables
-    );
+    const execution =
+      await this.client.ApiClient.postInvestecCardEnvironmentVariables(
+        this.client.token.access_token,
+        this.CardKey,
+        variables
+      );
     if (isResponseBad(execution)) {
       throw new Error(
         `not ok response while updating saved code: ${{
