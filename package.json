@@ -12,7 +12,7 @@
     "url": "https://github.com/FrikkieSnyman/investec-api.git"
   },
   "scripts": {
-    "prepublish": "yarn build",
+    "prep": "yarn install && yarn build && rm -rf node_modules && yarn --production",
     "build": "rm -rf dist/ && tsc",
     "test": "yarn build && node ./dist/test.js"
   },
