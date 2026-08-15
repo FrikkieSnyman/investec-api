@@ -57,20 +57,42 @@ const transactions = await account.getTransactions({
   fromDate: string;
   toDate: string;
   transactionType: string;
+  includePending: boolean;
 });
+```
+
+#### Get pending transactions
+
+```ts
+const pendingTransactions = await account.getPendingTransactions();
+```
+
+#### Get documents
+
+```ts
+const documents = await account.getDocuments("2023-04-01", "2023-06-01");
+```
+
+#### Get document (PDF)
+
+```ts
+const pdf = await account.getDocument(documentType, documentDate); // Buffer
 ```
 
 #### Transfer
 
 ```ts
-const transfer = await account.transfer([
-  {
-    account: Account;
-    amount: number;
-    myReference: string;
-    theirReference: string;
-  }
-]);
+const transfer = await account.transfer(
+  [
+    {
+      account: Account;
+      amount: number;
+      myReference: string;
+      theirReference: string;
+    }
+  ],
+  profileId? // optional
+);
 ```
 
 #### Payments
@@ -82,6 +104,11 @@ const payment = await account.pay([
     myReference: string;
     theirReference: string;
     amount: number;
+    // optional, for payments requiring authorisation:
+    authoriserAId?: string;
+    authoriserBId?: string;
+    authPeriodId?: string;
+    fasterPayment?: boolean;
    }
 ]);
 ```
@@ -98,6 +125,32 @@ const beneficiaries = await client.getBeneficiaries();
 
 ```ts
 const beneficiaryCategories = await client.getBeneficiaryCategories();
+```
+
+## Profiles
+
+### List profiles
+
+```ts
+const profiles = await client.getProfiles();
+```
+
+### List profile accounts
+
+```ts
+const accounts = await client.getProfileAccounts(profileId);
+```
+
+### Get authorisation setup details
+
+```ts
+const details = await client.getAuthorisationSetupDetails(profileId, accountId);
+```
+
+### List profile beneficiaries
+
+```ts
+const beneficiaries = await client.getProfileBeneficiaries(profileId, accountId);
 ```
 
 ## Cards

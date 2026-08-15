@@ -18,7 +18,38 @@ export interface InvestecAccount {
   accountName: string;
   referenceName: string;
   productName: string;
+  kycCompliant?: boolean;
+  profileId?: string;
+  profileName?: string;
   meta: any;
+}
+
+export interface InvestecProfile {
+  profileId: string;
+  profileName: string;
+  defaultProfile: boolean;
+}
+
+export interface InvestecAuthorisationPeriod {
+  id: string;
+  description: string;
+}
+
+export interface InvestecAuthoriser {
+  authoriserId: string;
+  name: string;
+}
+
+export interface InvestecAuthorisationSetupDetails {
+  numberOfAuthorisationRequired: string;
+  period: InvestecAuthorisationPeriod[];
+  authorisersListA: InvestecAuthoriser[];
+  authorisersListB: InvestecAuthoriser[];
+}
+
+export interface InvestecDocument {
+  documentType: string;
+  documentDate: string;
 }
 
 export interface InvestecCard {
@@ -86,6 +117,9 @@ export interface InvestecAccountBalance {
   accountId: string;
   currentBalance: number;
   availableBalance: number;
+  budgetBalance?: number;
+  straightBalance?: number;
+  cashBalance?: number;
   currency: string;
 }
 
@@ -103,6 +137,16 @@ export interface InvestecTransaction {
   transactionDate: string; // ISO8601 date (yyyy-mm-dd)
   amount: number;
   runningBalance: number;
+  uuid?: string;
+}
+
+export interface InvestecPendingTransaction {
+  accountId: string;
+  type: InvestecTransactionType;
+  status: InvestecTransactionStatus;
+  description: string;
+  transactionDate: string; // ISO8601 date (yyyy-mm-dd)
+  amount: number;
 }
 
 export interface InvestecTransfer {
@@ -138,6 +182,14 @@ export interface InvestecBeneficiary {
   referenceName: string;
   categoryId: string;
   profileId: string;
+  fasterPaymentAllowed?: boolean;
+}
+
+export interface InvestecPaymentAuthorisationOptions {
+  authoriserAId?: string;
+  authoriserBId?: string;
+  authPeriodId?: string;
+  fasterPayment?: boolean;
 }
 
 export interface InvestecBeneficiaryCategory {
@@ -160,7 +212,15 @@ type InvestecGenericResponse<Data> = Status | InvestecGenericOKResponse<Data>;
 
 export type Realm = "business" | "private";
 
-export type Scope = "accounts" | "transactions";
+export type Scope =
+  | "accounts"
+  | "balances"
+  | "transactions"
+  | "transfers"
+  | "beneficiarypayments"
+  | "cards"
+  | "documents.statements"
+  | "documents.taxcertificates";
 
 export type InvestecAuthResponse = Status | InvestecToken;
 
@@ -181,6 +241,26 @@ export type InvestecAccountBalanceResponse =
 export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
   transactions: InvestecTransaction[];
 }>;
+
+export type InvestecAccountPendingTransactionsResponse =
+  InvestecGenericResponse<{
+    transactions: InvestecPendingTransaction[];
+  }>;
+
+export type InvestecProfilesResponse = InvestecGenericResponse<
+  InvestecProfile[]
+>;
+
+export type InvestecProfileAccountsResponse = InvestecGenericResponse<
+  InvestecAccount[]
+>;
+
+export type InvestecAuthorisationSetupDetailsResponse =
+  InvestecGenericResponse<InvestecAuthorisationSetupDetails>;
+
+export type InvestecDocumentsResponse = InvestecGenericResponse<
+  InvestecDocument[]
+>;
 
 export type InvestecAccountTransferResponse = InvestecGenericResponse<{
   TransferResponses: InvestecTransfer[];
