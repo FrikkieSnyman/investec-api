@@ -90,6 +90,30 @@ describe("createInvestecAPIClient", () => {
       const response = await api.getInvestecCards("token");
       expect(response).toEqual({ status: 429 });
     });
+
+    it("captures the error body on non-200 responses", async () => {
+      fetch.mockResolvedValue({
+        status: 400,
+        text: async () => '{"profileId":["The profileId field is required."]}',
+      });
+      const response = await api.getInvestecBeneficiaryCategories("token");
+      expect(response).toEqual({
+        status: 400,
+        body: { profileId: ["The profileId field is required."] },
+      });
+    });
+
+    it("captures non-JSON error bodies as text", async () => {
+      fetch.mockResolvedValue({
+        status: 500,
+        text: async () => "Internal Server Error",
+      });
+      const response = await api.getInvestecCards("token");
+      expect(response).toEqual({
+        status: 500,
+        body: "Internal Server Error",
+      });
+    });
   });
 
   describe("accounts", () => {
@@ -262,6 +286,13 @@ describe("createInvestecAPIClient", () => {
       await api.getInvestecBeneficiaryCategories("token");
       expect(lastCall().url).toBe(
         "https://openapi.investec.com/za/pb/v1/accounts/beneficiarycategories"
+      );
+    });
+
+    it("passes profileId to beneficiary categories", async () => {
+      await api.getInvestecBeneficiaryCategories("token", "prof-1");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/accounts/beneficiarycategories?profileId=prof-1"
       );
     });
   });

@@ -51,10 +51,10 @@ export class Account implements InvestecAccount {
     );
     if (isResponseBad(balance)) {
       throw new Error(
-        `not ok response while getting account balance: ${{
+        `not ok response while getting account balance: ${JSON.stringify({
           accountId: this.accountId,
           response: balance,
-        }}`
+        })}`
       );
     }
     return balance.data;
@@ -87,10 +87,10 @@ export class Account implements InvestecAccount {
       );
     if (isResponseBad(transactions)) {
       throw new Error(
-        `not ok response while getting transactions for account: ${{
+        `not ok response while getting transactions for account: ${JSON.stringify({
           accountId: this.accountId,
           response: transactions,
-        }}`
+        })}`
       );
     }
     return transactions.data.transactions;
@@ -109,10 +109,10 @@ export class Account implements InvestecAccount {
       );
     if (isResponseBad(transactions)) {
       throw new Error(
-        `not ok response while getting pending transactions for account: ${{
+        `not ok response while getting pending transactions for account: ${JSON.stringify({
           accountId: this.accountId,
           response: transactions,
-        }}`
+        })}`
       );
     }
     return transactions.data.transactions;
@@ -133,10 +133,10 @@ export class Account implements InvestecAccount {
     );
     if (isResponseBad(documents)) {
       throw new Error(
-        `not ok response while getting documents for account: ${{
+        `not ok response while getting documents for account: ${JSON.stringify({
           accountId: this.accountId,
           response: documents,
-        }}`
+        })}`
       );
     }
     return documents.data;
@@ -157,10 +157,10 @@ export class Account implements InvestecAccount {
     );
     if (isResponseBad(document)) {
       throw new Error(
-        `not ok response while getting document for account: ${{
+        `not ok response while getting document for account: ${JSON.stringify({
           accountId: this.accountId,
           response: document,
-        }}`
+        })}`
       );
     }
     return document as Buffer;
@@ -194,10 +194,10 @@ export class Account implements InvestecAccount {
       );
     if (isResponseBad(transferResponse)) {
       throw new Error(
-        `not ok response while performing transfer for account: ${{
+        `not ok response while performing transfer for account: ${JSON.stringify({
           accountId: this.accountId,
           response: transferResponse,
-        }}`
+        })}`
       );
     }
     return transferResponse.data.TransferResponses;
@@ -235,10 +235,10 @@ export class Account implements InvestecAccount {
       );
     if (isResponseBad(transferResponse)) {
       throw new Error(
-        `not ok response while performing transfer for account: ${{
+        `not ok response while performing payment for account: ${JSON.stringify({
           accountId: this.accountId,
           response: transferResponse,
-        }}`
+        })}`
       );
     }
     return transferResponse.data.TransferResponses;

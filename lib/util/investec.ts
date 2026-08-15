@@ -108,7 +108,18 @@ const createSafeResponse = (
     response: Response
   ): Promise<T> => {
     if (response.status !== 200) {
-      return { status: response.status } as T;
+      let body: unknown;
+      try {
+        const text = await response.text();
+        try {
+          body = JSON.parse(text);
+        } catch {
+          body = text || undefined;
+        }
+      } catch {
+        body = undefined;
+      }
+      return { status: response.status, body } as T;
     }
     const json = await response.json();
     if (mode !== "off") {
@@ -396,9 +407,15 @@ export const createInvestecAPIClient = (
       return safeResponse<InvestecBeneficiariesResponse>(investecBeneficiariesResponseSchema, "getInvestecBeneficiaries", beneficiariesResponse);
     },
 
-    getInvestecBeneficiaryCategories: async (token: string) => {
+    // profileId is required by the live API even though the spec omits it
+    getInvestecBeneficiaryCategories: async (
+      token: string,
+      profileId?: string
+    ) => {
       const beneficiariesResponse = await fetch(
-        `${INVESTEC_BASE_URL}/za/pb/v1/accounts/beneficiarycategories`,
+        `${INVESTEC_BASE_URL}/za/pb/v1/accounts/beneficiarycategories${buildQueryString(
+          { profileId }
+        )}`,
         {
           headers: {
             ...getBasicHeaders(token),

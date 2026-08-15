@@ -204,7 +204,9 @@ export class Client {
       this.token.access_token
     );
     if (isResponseBad(cards)) {
-      throw new Error("not ok response from getting cards: " + cards);
+      throw new Error(
+        `not ok response from getting cards: ${JSON.stringify(cards)}`
+      );
     }
     return cards.data.cards.map((c) => new Card(this, c));
   }
@@ -217,24 +219,46 @@ export class Client {
       this.token.access_token
     );
     if (isResponseBad(beneficiaries)) {
-      throw new Error("not ok response from getting cards: " + beneficiaries);
+      throw new Error(
+        `not ok response from getting beneficiaries: ${JSON.stringify(
+          beneficiaries
+        )}`
+      );
     }
     return beneficiaries.data;
   }
 
-  public async getBeneficiaryCategories(): Promise<
-    InvestecBeneficiaryCategory[]
-  > {
+  // the live API requires a profileId (undocumented in the spec); when
+  // omitted, the default profile is looked up and used
+  public async getBeneficiaryCategories(
+    profileId?: string
+  ): Promise<InvestecBeneficiaryCategory[]> {
     if (!this.token) {
       throw new Error("client is not set up");
     }
-    const beneficiaries = await this.apiClient.getInvestecBeneficiaryCategories(
-      this.token.access_token
-    );
-    if (isResponseBad(beneficiaries)) {
-      throw new Error("not ok response from getting cards: " + beneficiaries);
+    let resolvedProfileId = profileId;
+    if (!resolvedProfileId) {
+      const profiles = await this.getProfiles();
+      resolvedProfileId = (
+        profiles.find((p) => p.defaultProfile) ?? profiles[0]
+      )?.profileId;
     }
-    return beneficiaries.data;
+    const categories = await this.apiClient.getInvestecBeneficiaryCategories(
+      this.token.access_token,
+      resolvedProfileId
+    );
+    if (isResponseBad(categories)) {
+      throw new Error(
+        `not ok response from getting beneficiary categories: ${JSON.stringify(
+          categories
+        )}`
+      );
+    }
+    return categories.data.map((c) =>
+      "CategoryId" in c
+        ? { id: c.CategoryId, isDefault: c.DefaultCategory, name: c.CategoryName }
+        : c
+    );
   }
 
   public async getProfiles(): Promise<InvestecProfile[]> {

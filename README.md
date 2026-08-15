@@ -144,8 +144,10 @@ const beneficiaries = await client.getBeneficiaries();
 ### List beneficiary categories
 
 ```ts
-const beneficiaryCategories = await client.getBeneficiaryCategories();
+const beneficiaryCategories = await client.getBeneficiaryCategories(profileId?);
 ```
+
+The live API requires a `profileId` (the spec doesn't document it); when omitted, the default profile is looked up and used.
 
 ## Profiles
 

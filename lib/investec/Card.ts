@@ -46,7 +46,7 @@ export class Card implements InvestecCard {
       client.token.access_token
     );
     if (isResponseBad(response)) {
-      throw new Error(`error getting countries: ${{ response }}`);
+      throw new Error(`error getting countries: ${JSON.stringify({ response })}`);
     }
     return response.data.result;
   }
@@ -60,7 +60,7 @@ export class Card implements InvestecCard {
       client.token.access_token
     );
     if (isResponseBad(response)) {
-      throw new Error(`error getting countries: ${{ response }}`);
+      throw new Error(`error getting currencies: ${JSON.stringify({ response })}`);
     }
     return response.data.result;
   }
@@ -74,7 +74,7 @@ export class Card implements InvestecCard {
       client.token.access_token
     );
     if (isResponseBad(response)) {
-      throw new Error(`error getting countries: ${{ response }}`);
+      throw new Error(`error getting merchants: ${JSON.stringify({ response })}`);
     }
     return response.data.result;
   }
@@ -90,7 +90,7 @@ export class Card implements InvestecCard {
       input
     );
     if (isResponseBad(response)) {
-      throw new Error(`error creating virtual card: ${{ response }}`);
+      throw new Error(`error creating virtual card: ${JSON.stringify({ response })}`);
     }
     return response.data.result;
   }
@@ -125,10 +125,10 @@ export class Card implements InvestecCard {
     );
     if (isResponseBad(detail)) {
       throw new Error(
-        `not ok response while getting card detail: ${{
+        `not ok response while getting card detail: ${JSON.stringify({
           cardKey: this.CardKey,
           response: detail,
-        }}`
+        })}`
       );
     }
     return detail.data.result;
@@ -147,10 +147,10 @@ export class Card implements InvestecCard {
     );
     if (isResponseBad(detail)) {
       throw new Error(
-        `not ok response while getting sensitive card detail: ${{
+        `not ok response while getting sensitive card detail: ${JSON.stringify({
           cardKey: this.CardKey,
           response: detail,
-        }}`
+        })}`
       );
     }
     return detail.data.result;
@@ -168,10 +168,10 @@ export class Card implements InvestecCard {
       );
     if (isResponseBad(response)) {
       throw new Error(
-        `not ok response while toggling programmable feature: ${{
+        `not ok response while toggling programmable feature: ${JSON.stringify({
           cardKey: this.CardKey,
           response,
-        }}`
+        })}`
       );
     }
     this.IsProgrammable = response.Enabled;
@@ -188,10 +188,10 @@ export class Card implements InvestecCard {
     );
     if (isResponseBad(savedCode)) {
       throw new Error(
-        `not ok response while getting saved code: ${{
+        `not ok response while getting saved code: ${JSON.stringify({
           cardKey: this.CardKey,
           response: savedCode,
-        }}`
+        })}`
       );
     }
     return savedCode.data.result;
@@ -208,10 +208,10 @@ export class Card implements InvestecCard {
       );
     if (isResponseBad(publishedCode)) {
       throw new Error(
-        `not ok response while getting published code: ${{
+        `not ok response while getting published code: ${JSON.stringify({
           cardKey: this.CardKey,
           response: publishedCode,
-        }}`
+        })}`
       );
     }
     return publishedCode.data.result;
@@ -229,10 +229,10 @@ export class Card implements InvestecCard {
     );
     if (isResponseBad(savedCode)) {
       throw new Error(
-        `not ok response while updating saved code: ${{
+        `not ok response while updating saved code: ${JSON.stringify({
           cardKey: this.CardKey,
           response: savedCode,
-        }}`
+        })}`
       );
     }
     return savedCode.data.result;
@@ -255,10 +255,10 @@ export class Card implements InvestecCard {
       );
     if (isResponseBad(publishedCode)) {
       throw new Error(
-        `not ok response while updating saved code: ${{
+        `not ok response while publishing saved code: ${JSON.stringify({
           cardKey: this.CardKey,
           response: publishedCode,
-        }}`
+        })}`
       );
     }
     return publishedCode.data.result;
@@ -279,10 +279,10 @@ export class Card implements InvestecCard {
       );
     if (isResponseBad(execution)) {
       throw new Error(
-        `not ok response while updating saved code: ${{
+        `not ok response while simulating function execution: ${JSON.stringify({
           cardKey: this.CardKey,
           response: execution,
-        }}`
+        })}`
       );
     }
     return unwrapExecutions(execution.data.result, this.CardKey);
@@ -299,10 +299,10 @@ export class Card implements InvestecCard {
     );
     if (isResponseBad(execution)) {
       throw new Error(
-        `not ok response while updating saved code: ${{
+        `not ok response while getting executions: ${JSON.stringify({
           cardKey: this.CardKey,
           response: execution,
-        }}`
+        })}`
       );
     }
     return unwrapExecutions(execution.data.result, this.CardKey);
@@ -320,10 +320,10 @@ export class Card implements InvestecCard {
       );
     if (isResponseBad(execution)) {
       throw new Error(
-        `not ok response while updating saved code: ${{
+        `not ok response while getting environment variables: ${JSON.stringify({
           cardKey: this.CardKey,
           response: execution,
-        }}`
+        })}`
       );
     }
     return execution.data.result;
@@ -344,10 +344,10 @@ export class Card implements InvestecCard {
       );
     if (isResponseBad(execution)) {
       throw new Error(
-        `not ok response while updating saved code: ${{
+        `not ok response while updating environment variables: ${JSON.stringify({
           cardKey: this.CardKey,
           response: execution,
-        }}`
+        })}`
       );
     }
     return execution.data.result;
