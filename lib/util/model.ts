@@ -60,6 +60,44 @@ export interface InvestecCard {
   CardTypeCode: string;
   AccountNumber: string;
   AccountId: string;
+  EmbossedName?: string;
+  IsVirtualCard?: boolean;
+}
+
+export interface InvestecCreateVirtualCardInput {
+  accountNumber: string;
+  embossName: string;
+  embossName2?: string;
+}
+
+export interface InvestecCreatedVirtualCard {
+  CardKey: string;
+  IsVirtualCard: boolean;
+  EmbossName: string;
+  EmbossName2: string;
+}
+
+export interface InvestecCardDetails {
+  CardKeyHash: string;
+  MaskedCardNumber: string;
+  EmbossName: string;
+  EmbossName2: string;
+  Status: string;
+  AccountNumber: string;
+  IsVirtualCard: boolean;
+  ExtendedDetails: {
+    CardNumber: string;
+    ExpiryDate: string;
+    CVV2: string;
+  } | null;
+}
+
+export interface InvestecSensitiveCardDetailsInput {
+  keyId: number;
+  identifier: string;
+  appName: string;
+  modulus: string;
+  exponent: string;
 }
 
 export interface InvestecCardCode {
@@ -294,6 +332,18 @@ export type InvestecCardEnvironmentVariablesResponse = InvestecGenericResponse<{
 export type InvestecCardNameCodeResponse = InvestecGenericResponse<{
   result: InvestecNameAndCode[];
 }>;
+
+export type InvestecCreateVirtualCardResponse = InvestecGenericResponse<{
+  result: InvestecCreatedVirtualCard;
+}>;
+
+export type InvestecCardDetailsResponse = InvestecGenericResponse<{
+  result: InvestecCardDetails;
+}>;
+
+export type InvestecToggleProgrammableFeatureResponse =
+  | Status
+  | { Enabled: boolean };
 
 export const isResponseBad = (response: any): response is Status => {
   return !!response.status;

@@ -18,9 +18,14 @@ import {
   InvestecAuthorisationSetupDetailsResponse,
   InvestecBeneficiariesResponse,
   InvestecBeneficiaryCategoriesResponse,
+  InvestecCardDetailsResponse,
+  InvestecCreateVirtualCardInput,
+  InvestecCreateVirtualCardResponse,
   InvestecDocumentsResponse,
   InvestecProfileAccountsResponse,
   InvestecProfilesResponse,
+  InvestecSensitiveCardDetailsInput,
+  InvestecToggleProgrammableFeatureResponse,
 } from "./model";
 
 const RealmSelector: { [key in Realm]: "pb" | "bb" } = {
@@ -433,6 +438,79 @@ export const createInvestecAPIClient = (
       return safeResponse<InvestecCardsResponse>(cardsResponse);
     },
 
+    postInvestecCreateVirtualCard: async (
+      token: string,
+      { accountNumber, embossName, embossName2 }: InvestecCreateVirtualCardInput
+    ): Promise<InvestecCreateVirtualCardResponse> => {
+      const body = {
+        AccountNumber: accountNumber,
+        EmbossName: embossName,
+        ...(embossName2 ? { EmbossName2: embossName2 } : {}),
+      };
+      const response = await fetch(`${INVESTEC_BASE_URL}/za/v1/cards`, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          ...getBasicHeaders(token),
+        },
+      });
+      return safeResponse<InvestecCreateVirtualCardResponse>(response);
+    },
+
+    getInvestecCardDetail: async (
+      token: string,
+      cardKey: string
+    ): Promise<InvestecCardDetailsResponse> => {
+      const response = await fetch(
+        `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecCardDetailsResponse>(response);
+    },
+
+    postInvestecCardDetailSensitive: async (
+      token: string,
+      cardKey: string,
+      input: InvestecSensitiveCardDetailsInput
+    ): Promise<InvestecCardDetailsResponse> => {
+      const response = await fetch(
+        `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}?extended=true`,
+        {
+          method: "POST",
+          body: JSON.stringify(input),
+          headers: {
+            "Content-Type": "application/json",
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecCardDetailsResponse>(response);
+    },
+
+    postInvestecCardToggleProgrammableFeature: async (
+      token: string,
+      cardKey: string,
+      enabled: boolean
+    ): Promise<InvestecToggleProgrammableFeatureResponse> => {
+      const response = await fetch(
+        `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/toggle-programmable-feature`,
+        {
+          method: "POST",
+          body: JSON.stringify({ Enabled: enabled }),
+          headers: {
+            "Content-Type": "application/json",
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecToggleProgrammableFeatureResponse>(response);
+    },
+
     getInvestecCardSavedCode: async (
       token: string,
       cardKey: string
@@ -486,11 +564,12 @@ export const createInvestecAPIClient = (
     postInvestecCardPublishSavedCode: async (
       token: string,
       cardKey: string,
-      codeId: string
+      codeId: string,
+      code: string = ""
     ): Promise<InvestecCardCodeResponse> => {
-      const body = { codeid: codeId, code: "" };
+      const body = { codeid: codeId, code };
       const response = await fetch(
-        `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/code`,
+        `${INVESTEC_BASE_URL}/za/v1/cards/${cardKey}/publish`,
         {
           method: "POST",
           body: JSON.stringify(body),
