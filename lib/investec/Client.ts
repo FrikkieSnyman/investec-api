@@ -1,8 +1,10 @@
 import { createInvestecAPIClient } from "../util/investec";
 import {
+  InvestecAuthorisationSetupDetails,
   InvestecAuthResponse,
   InvestecBeneficiary,
   InvestecBeneficiaryCategory,
+  InvestecProfile,
   InvestecToken,
   isResponseBad,
   Realm,
@@ -149,6 +151,90 @@ export class Client {
     );
     if (isResponseBad(beneficiaries)) {
       throw new Error("not ok response from getting cards: " + beneficiaries);
+    }
+    return beneficiaries.data;
+  }
+
+  public async getProfiles(): Promise<InvestecProfile[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const profiles = await this.apiClient.getInvestecProfiles(
+      this.token.access_token
+    );
+    if (isResponseBad(profiles)) {
+      throw new Error(
+        `not ok response from getting profiles: ${JSON.stringify(profiles)}`
+      );
+    }
+    return profiles.data;
+  }
+
+  public async getProfileAccounts(profileId: string): Promise<Account[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const accounts = await this.apiClient.getInvestecProfileAccounts(
+      this.token.access_token,
+      profileId
+    );
+    if (isResponseBad(accounts)) {
+      throw new Error(
+        `not ok response from getting profile accounts: ${JSON.stringify(
+          accounts
+        )}`
+      );
+    }
+    return accounts.data.map(
+      (a) =>
+        new Account(
+          this,
+          { ...a, profileId: a.profileId ?? profileId },
+          "private"
+        )
+    );
+  }
+
+  public async getAuthorisationSetupDetails(
+    profileId: string,
+    accountId: string
+  ): Promise<InvestecAuthorisationSetupDetails> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const details = await this.apiClient.getInvestecAuthorisationSetupDetails(
+      this.token.access_token,
+      profileId,
+      accountId
+    );
+    if (isResponseBad(details)) {
+      throw new Error(
+        `not ok response from getting authorisation setup details: ${JSON.stringify(
+          details
+        )}`
+      );
+    }
+    return details.data;
+  }
+
+  public async getProfileBeneficiaries(
+    profileId: string,
+    accountId: string
+  ): Promise<InvestecBeneficiary[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const beneficiaries = await this.apiClient.getInvestecProfileBeneficiaries(
+      this.token.access_token,
+      profileId,
+      accountId
+    );
+    if (isResponseBad(beneficiaries)) {
+      throw new Error(
+        `not ok response from getting profile beneficiaries: ${JSON.stringify(
+          beneficiaries
+        )}`
+      );
     }
     return beneficiaries.data;
   }

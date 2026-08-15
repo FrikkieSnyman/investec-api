@@ -177,6 +177,83 @@ describe("createInvestecAPIClient", () => {
     });
   });
 
+  describe("pending transactions", () => {
+    it("gets pending transactions", async () => {
+      await api.getInvestecPendingTransactionsForAccount("token", "acc-1");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/accounts/acc-1/pending-transactions"
+      );
+    });
+
+    it("passes includePending on the transactions query", async () => {
+      await api.getInvestecTransactionsForAccount("token", {
+        accountId: "acc-1",
+        fromDate: "2024-01-01",
+        includePending: true,
+      });
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/accounts/acc-1/transactions?fromDate=2024-01-01&includePending=true"
+      );
+    });
+  });
+
+  describe("profiles", () => {
+    it("gets profiles", async () => {
+      await api.getInvestecProfiles("token");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/profiles"
+      );
+    });
+
+    it("gets profile accounts", async () => {
+      await api.getInvestecProfileAccounts("token", "prof-1");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/profiles/prof-1/accounts"
+      );
+    });
+
+    it("gets authorisation setup details", async () => {
+      await api.getInvestecAuthorisationSetupDetails("token", "prof-1", "acc-1");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/profiles/prof-1/accounts/acc-1/authorisationsetupdetails"
+      );
+    });
+
+    it("gets profile beneficiaries", async () => {
+      await api.getInvestecProfileBeneficiaries("token", "prof-1", "acc-1");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/profiles/prof-1/accounts/acc-1/beneficiaries"
+      );
+    });
+  });
+
+  describe("documents", () => {
+    it("gets the document list", async () => {
+      await api.getInvestecDocuments("token", "acc-1", "2023-04-01", "2023-06-01");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/accounts/acc-1/documents?fromDate=2023-04-01&toDate=2023-06-01"
+      );
+    });
+
+    it("downloads a document as a Buffer", async () => {
+      fetch.mockResolvedValue({
+        status: 200,
+        arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+      });
+      const document = await api.getInvestecDocument(
+        "token",
+        "acc-1",
+        "Statement",
+        "2023-03-16"
+      );
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/pb/v1/accounts/acc-1/document/Statement/2023-03-16"
+      );
+      expect(Buffer.isBuffer(document)).toBe(true);
+      expect([...(document as Buffer)]).toEqual([1, 2, 3]);
+    });
+  });
+
   describe("beneficiaries", () => {
     it("gets beneficiaries", async () => {
       await api.getInvestecBeneficiaries("token");

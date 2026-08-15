@@ -14,8 +14,13 @@ import {
   Scope,
   Realm,
   InvestecAccountPaymentResponse,
+  InvestecAccountPendingTransactionsResponse,
+  InvestecAuthorisationSetupDetailsResponse,
   InvestecBeneficiariesResponse,
   InvestecBeneficiaryCategoriesResponse,
+  InvestecDocumentsResponse,
+  InvestecProfileAccountsResponse,
+  InvestecProfilesResponse,
 } from "./model";
 
 const RealmSelector: { [key in Realm]: "pb" | "bb" } = {
@@ -35,6 +40,16 @@ const safeResponse = <T>(response: Response) => {
   }
 
   return response.json() as Promise<T>;
+};
+
+const buildQueryString = (params: {
+  [key in string]: string | boolean | undefined;
+}) => {
+  const query = Object.entries(params)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
+    .join("&");
+  return query ? `?${query}` : "";
 };
 
 export const createInvestecAPIClient = (
@@ -156,21 +171,25 @@ export const createInvestecAPIClient = (
         fromDate,
         toDate,
         transactionType,
+        includePending,
       }: {
         accountId: string;
         fromDate?: string;
         toDate?: string;
         transactionType?: InvestecTransactionTransactionType;
+        includePending?: boolean;
       },
       realm: Realm = "private"
     ): Promise<InvestecAccountTransactionsResponse> => {
       const transactionsResponse = await fetch(
         `${INVESTEC_BASE_URL}/za/${
           RealmSelector[realm]
-        }/v1/accounts/${accountId}/transactions?${
-          fromDate ? ` &fromDate=${fromDate}` : ""
-        }${toDate ? `&toDate=${toDate}` : ""}
-        ${transactionType ? `&transactionType=${transactionType}` : ""}`,
+        }/v1/accounts/${accountId}/transactions${buildQueryString({
+          fromDate,
+          toDate,
+          transactionType: transactionType ?? undefined,
+          includePending,
+        })}`,
         {
           headers: {
             ...getBasicHeaders(token),
@@ -182,11 +201,29 @@ export const createInvestecAPIClient = (
       );
     },
 
+    getInvestecPendingTransactionsForAccount: async (
+      token: string,
+      accountId: string
+    ): Promise<InvestecAccountPendingTransactionsResponse> => {
+      const pendingTransactionsResponse = await fetch(
+        `${INVESTEC_BASE_URL}/za/pb/v1/accounts/${accountId}/pending-transactions`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecAccountPendingTransactionsResponse>(
+        pendingTransactionsResponse
+      );
+    },
+
     postInvestecTransferMultiple: async (
       token: string,
       {
         fromAccountId,
         toAccounts,
+        profileId,
       }: {
         fromAccountId: string;
         toAccounts: Array<{
@@ -195,6 +232,7 @@ export const createInvestecAPIClient = (
           myReference: string;
           theirReference: string;
         }>;
+        profileId?: string;
       },
       realm: Realm = "private"
     ): Promise<InvestecAccountTransferResponse> => {
@@ -205,6 +243,7 @@ export const createInvestecAPIClient = (
           myReference: t.myReference,
           theirReference: t.theirReference,
         })),
+        ...(profileId ? { profileId } : {}),
       };
       const transferResponse = await fetch(
         `${INVESTEC_BASE_URL}/za/${RealmSelector[realm]}/v1/accounts/${fromAccountId}/transfermultiple`,
@@ -232,6 +271,10 @@ export const createInvestecAPIClient = (
           amount: number;
           myReference: string;
           theirReference: string;
+          authoriserAId?: string;
+          authoriserBId?: string;
+          authPeriodId?: string;
+          fasterPayment?: boolean;
         }>;
       },
       realm: Realm = "private"
@@ -277,6 +320,108 @@ export const createInvestecAPIClient = (
       return safeResponse<InvestecBeneficiaryCategoriesResponse>(
         beneficiariesResponse
       );
+    },
+
+    getInvestecProfiles: async (
+      token: string
+    ): Promise<InvestecProfilesResponse> => {
+      const profilesResponse = await fetch(
+        `${INVESTEC_BASE_URL}/za/pb/v1/profiles`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecProfilesResponse>(profilesResponse);
+    },
+
+    getInvestecProfileAccounts: async (
+      token: string,
+      profileId: string
+    ): Promise<InvestecProfileAccountsResponse> => {
+      const accountsResponse = await fetch(
+        `${INVESTEC_BASE_URL}/za/pb/v1/profiles/${profileId}/accounts`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecProfileAccountsResponse>(accountsResponse);
+    },
+
+    getInvestecAuthorisationSetupDetails: async (
+      token: string,
+      profileId: string,
+      accountId: string
+    ): Promise<InvestecAuthorisationSetupDetailsResponse> => {
+      const detailsResponse = await fetch(
+        `${INVESTEC_BASE_URL}/za/pb/v1/profiles/${profileId}/accounts/${accountId}/authorisationsetupdetails`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecAuthorisationSetupDetailsResponse>(
+        detailsResponse
+      );
+    },
+
+    getInvestecProfileBeneficiaries: async (
+      token: string,
+      profileId: string,
+      accountId: string
+    ): Promise<InvestecBeneficiariesResponse> => {
+      const beneficiariesResponse = await fetch(
+        `${INVESTEC_BASE_URL}/za/pb/v1/profiles/${profileId}/accounts/${accountId}/beneficiaries`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecBeneficiariesResponse>(beneficiariesResponse);
+    },
+
+    getInvestecDocuments: async (
+      token: string,
+      accountId: string,
+      fromDate: string,
+      toDate: string
+    ): Promise<InvestecDocumentsResponse> => {
+      const documentsResponse = await fetch(
+        `${INVESTEC_BASE_URL}/za/pb/v1/accounts/${accountId}/documents${buildQueryString(
+          { fromDate, toDate }
+        )}`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      return safeResponse<InvestecDocumentsResponse>(documentsResponse);
+    },
+
+    getInvestecDocument: async (
+      token: string,
+      accountId: string,
+      documentType: string,
+      documentDate: string
+    ): Promise<Buffer | { status: number }> => {
+      const documentResponse = await fetch(
+        `${INVESTEC_BASE_URL}/za/pb/v1/accounts/${accountId}/document/${documentType}/${documentDate}`,
+        {
+          headers: {
+            ...getBasicHeaders(token),
+          },
+        }
+      );
+      if (documentResponse.status !== 200) {
+        return { status: documentResponse.status };
+      }
+      return Buffer.from(await documentResponse.arrayBuffer());
     },
 
     getInvestecCards: async (token: string): Promise<InvestecCardsResponse> => {

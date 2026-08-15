@@ -2,7 +2,10 @@ import { Client } from "..";
 import {
   InvestecAccount,
   InvestecBeneficiary,
+  InvestecDocument,
   InvestecPayment,
+  InvestecPaymentAuthorisationOptions,
+  InvestecPendingTransaction,
   InvestecTransaction,
   InvestecTransactionTransactionType,
   InvestecTransfer,
@@ -22,6 +25,9 @@ export class Account implements InvestecAccount {
   public accountName: string;
   public referenceName: string;
   public productName: string;
+  public kycCompliant: boolean;
+  public profileId: string;
+  public profileName: string;
   public realm: Realm;
   public meta: any;
   constructor(private client: Client, _account: InvestecAccount, realm: Realm) {
@@ -31,6 +37,9 @@ export class Account implements InvestecAccount {
     this.accountName = account.accountName;
     this.referenceName = account.referenceName;
     this.productName = account.productName;
+    this.kycCompliant = account.kycCompliant;
+    this.profileId = account.profileId;
+    this.profileName = account.profileName;
     this.meta = { ..._account };
     this.realm = realm;
   }
@@ -59,10 +68,12 @@ export class Account implements InvestecAccount {
     fromDate,
     toDate,
     transactionType,
+    includePending,
   }: {
     fromDate?: string;
     toDate?: string;
     transactionType?: InvestecTransactionTransactionType;
+    includePending?: boolean;
   }): Promise<InvestecTransaction[]> {
     if (!this.client.token) {
       throw new Error("client is not set up");
@@ -70,7 +81,13 @@ export class Account implements InvestecAccount {
     const transactions =
       await this.client.ApiClient.getInvestecTransactionsForAccount(
         this.client.token.access_token,
-        { accountId: this.accountId, fromDate, toDate, transactionType },
+        {
+          accountId: this.accountId,
+          fromDate,
+          toDate,
+          transactionType,
+          includePending,
+        },
         this.realm
       );
     if (isResponseBad(transactions)) {
@@ -84,13 +101,84 @@ export class Account implements InvestecAccount {
     return transactions.data.transactions;
   }
 
+  public async getPendingTransactions(): Promise<
+    InvestecPendingTransaction[]
+  > {
+    if (!this.client.token) {
+      throw new Error("client is not set up");
+    }
+    const transactions =
+      await this.client.ApiClient.getInvestecPendingTransactionsForAccount(
+        this.client.token.access_token,
+        this.accountId
+      );
+    if (isResponseBad(transactions)) {
+      throw new Error(
+        `not ok response while getting pending transactions for account: ${{
+          accountId: this.accountId,
+          response: transactions,
+        }}`
+      );
+    }
+    return transactions.data.transactions;
+  }
+
+  public async getDocuments(
+    fromDate: string,
+    toDate: string
+  ): Promise<InvestecDocument[]> {
+    if (!this.client.token) {
+      throw new Error("client is not set up");
+    }
+    const documents = await this.client.ApiClient.getInvestecDocuments(
+      this.client.token.access_token,
+      this.accountId,
+      fromDate,
+      toDate
+    );
+    if (isResponseBad(documents)) {
+      throw new Error(
+        `not ok response while getting documents for account: ${{
+          accountId: this.accountId,
+          response: documents,
+        }}`
+      );
+    }
+    return documents.data;
+  }
+
+  public async getDocument(
+    documentType: string,
+    documentDate: string
+  ): Promise<Buffer> {
+    if (!this.client.token) {
+      throw new Error("client is not set up");
+    }
+    const document = await this.client.ApiClient.getInvestecDocument(
+      this.client.token.access_token,
+      this.accountId,
+      documentType,
+      documentDate
+    );
+    if (isResponseBad(document)) {
+      throw new Error(
+        `not ok response while getting document for account: ${{
+          accountId: this.accountId,
+          response: document,
+        }}`
+      );
+    }
+    return document as Buffer;
+  }
+
   public async transfer(
     recipients: Array<{
       account: Account;
       myReference: string;
       theirReference: string;
       amount: number;
-    }>
+    }>,
+    profileId?: string
   ): Promise<InvestecTransfer[]> {
     if (!this.client.token) {
       throw new Error("client is not set up");
@@ -106,6 +194,7 @@ export class Account implements InvestecAccount {
             myReference: r.myReference,
             theirReference: r.theirReference,
           })),
+          profileId: profileId ?? this.profileId,
         },
         this.realm
       );
@@ -126,6 +215,8 @@ export class Account implements InvestecAccount {
       myReference: string;
       theirReference: string;
       amount: number;
+      authorisation?: InvestecPaymentAuthorisationOptions;
+      fasterPayment?: boolean;
     }>
   ): Promise<InvestecPayment[]> {
     if (!this.client.token) {
@@ -141,6 +232,10 @@ export class Account implements InvestecAccount {
             amount: r.amount,
             myReference: r.myReference,
             theirReference: r.theirReference,
+            authoriserAId: r.authorisation?.aId,
+            authoriserBId: r.authorisation?.bId,
+            authPeriodId: r.authorisation?.periodId,
+            fasterPayment: r.fasterPayment,
           })),
         },
         this.realm
