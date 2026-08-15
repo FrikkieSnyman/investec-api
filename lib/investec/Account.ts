@@ -10,7 +10,6 @@ import {
   InvestecTransactionTransactionType,
   InvestecTransfer,
   isResponseBad,
-  Realm,
 } from "../util/model";
 // PB returns camelCase keys, BB v1 returns PascalCase; normalise to camelCase
 const camelizeKeys = (obj: Record<string, any>): Record<string, any> =>
@@ -28,9 +27,8 @@ export class Account implements InvestecAccount {
   public kycCompliant: boolean;
   public profileId: string;
   public profileName: string;
-  public realm: Realm;
   public meta: any;
-  constructor(private client: Client, _account: InvestecAccount, realm: Realm) {
+  constructor(private client: Client, _account: InvestecAccount) {
     const account = camelizeKeys(_account) as InvestecAccount;
     this.accountId = account.accountId;
     this.accountNumber = account.accountNumber;
@@ -41,7 +39,6 @@ export class Account implements InvestecAccount {
     this.profileId = account.profileId;
     this.profileName = account.profileName;
     this.meta = { ..._account };
-    this.realm = realm;
   }
 
   public async getBalance() {
@@ -50,8 +47,7 @@ export class Account implements InvestecAccount {
     }
     const balance = await this.client.ApiClient.getAccountBalance(
       this.client.token.access_token,
-      this.accountId,
-      this.realm
+      this.accountId
     );
     if (isResponseBad(balance)) {
       throw new Error(
@@ -87,8 +83,7 @@ export class Account implements InvestecAccount {
           toDate,
           transactionType,
           includePending,
-        },
-        this.realm
+        }
       );
     if (isResponseBad(transactions)) {
       throw new Error(
@@ -195,8 +190,7 @@ export class Account implements InvestecAccount {
             theirReference: r.theirReference,
           })),
           profileId: profileId ?? this.profileId,
-        },
-        this.realm
+        }
       );
     if (isResponseBad(transferResponse)) {
       throw new Error(
@@ -237,8 +231,7 @@ export class Account implements InvestecAccount {
             authPeriodId: r.authorisation?.periodId,
             fasterPayment: r.fasterPayment,
           })),
-        },
-        this.realm
+        }
       );
     if (isResponseBad(transferResponse)) {
       throw new Error(
