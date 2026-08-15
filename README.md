@@ -160,6 +160,16 @@ const beneficiaries = await client.getProfileBeneficiaries(profileId, accountId)
 const cards = await client.getCards();
 ```
 
+### Create virtual card
+
+```ts
+const virtualCard = await Card.createVirtualCard(client, {
+  accountNumber: string;
+  embossName: string;
+  embossName2?: string;
+});
+```
+
 ### Get Card countries
 
 ```ts
@@ -182,6 +192,32 @@ const countries = await Card.getMerchants();
 
 On a `Card` object, you can:
 
+#### Get card detail
+
+```ts
+const detail = await card.getDetail();
+```
+
+#### Get card detail with sensitive information
+
+Requires an RSA (2048) key pair; the API encrypts card number, expiry date and CVV with your public key (returned in `ExtendedDetails`).
+
+```ts
+const detail = await card.getSensitiveDetail({
+  keyId: number;
+  identifier: string;
+  appName: string;
+  modulus: string;
+  exponent: string;
+});
+```
+
+#### Toggle programmable feature
+
+```ts
+const enabled = await card.toggleProgrammableFeature(true | false);
+```
+
 #### Get Saved code
 
 ```ts
@@ -203,7 +239,7 @@ const updatedCode = await card.updateSavedCode(code: string);
 #### Publish saved code
 
 ```ts
-const publishedCode = await card.publishSavedCode(codeId: string);
+const publishedCode = await card.publishSavedCode(codeId: string, code?: string);
 ```
 
 #### Simulate functions execution

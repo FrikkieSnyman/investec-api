@@ -10,6 +10,8 @@ const rawCard: InvestecCard = {
   CardTypeCode: "VGC",
   AccountNumber: "10011001100",
   AccountId: "acc-1",
+  EmbossedName: "JOHN SMITH",
+  IsVirtualCard: false,
 };
 
 const makeFakeClient = (apiClient: Record<string, jest.Mock>) =>

@@ -2,9 +2,13 @@ import { Client } from "..";
 import {
   InvestecCard,
   InvestecCardCode,
+  InvestecCardDetails,
   InvestecCardEnvironmentVariables,
   InvestecCardExecution,
+  InvestecCreatedVirtualCard,
+  InvestecCreateVirtualCardInput,
   InvestecNameAndCode,
+  InvestecSensitiveCardDetailsInput,
   InvestecSimulateExecutionInput,
   isResponseBad,
 } from "../util/model";
@@ -52,6 +56,22 @@ export class Card implements InvestecCard {
     }
     return response.data.result;
   }
+  public static async createVirtualCard(
+    client: Client,
+    input: InvestecCreateVirtualCardInput
+  ): Promise<InvestecCreatedVirtualCard> {
+    if (!client.token) {
+      throw new Error("client is not set up");
+    }
+    const response = await client.ApiClient.postInvestecCreateVirtualCard(
+      client.token.access_token,
+      input
+    );
+    if (isResponseBad(response)) {
+      throw new Error(`error creating virtual card: ${{ response }}`);
+    }
+    return response.data.result;
+  }
   public CardKey: string;
   public CardNumber: string;
   public IsProgrammable: boolean;
@@ -59,6 +79,8 @@ export class Card implements InvestecCard {
   public CardTypeCode: string;
   public AccountNumber: string;
   public AccountId: string;
+  public EmbossedName: string;
+  public IsVirtualCard: boolean;
   constructor(private client: Client, card: InvestecCard) {
     this.CardKey = card.CardKey;
     this.CardNumber = card.CardNumber;
@@ -67,6 +89,71 @@ export class Card implements InvestecCard {
     this.CardTypeCode = card.CardTypeCode;
     this.AccountNumber = card.AccountNumber;
     this.AccountId = card.AccountId;
+    this.EmbossedName = card.EmbossedName;
+    this.IsVirtualCard = card.IsVirtualCard;
+  }
+
+  public async getDetail(): Promise<InvestecCardDetails> {
+    if (!this.client.token) {
+      throw new Error("client is not set up");
+    }
+    const detail = await this.client.ApiClient.getInvestecCardDetail(
+      this.client.token.access_token,
+      this.CardKey
+    );
+    if (isResponseBad(detail)) {
+      throw new Error(
+        `not ok response while getting card detail: ${{
+          cardKey: this.CardKey,
+          response: detail,
+        }}`
+      );
+    }
+    return detail.data.result;
+  }
+
+  public async getSensitiveDetail(
+    input: InvestecSensitiveCardDetailsInput
+  ): Promise<InvestecCardDetails> {
+    if (!this.client.token) {
+      throw new Error("client is not set up");
+    }
+    const detail = await this.client.ApiClient.postInvestecCardDetailSensitive(
+      this.client.token.access_token,
+      this.CardKey,
+      input
+    );
+    if (isResponseBad(detail)) {
+      throw new Error(
+        `not ok response while getting sensitive card detail: ${{
+          cardKey: this.CardKey,
+          response: detail,
+        }}`
+      );
+    }
+    return detail.data.result;
+  }
+
+  public async toggleProgrammableFeature(enabled: boolean): Promise<boolean> {
+    if (!this.client.token) {
+      throw new Error("client is not set up");
+    }
+    const response =
+      await this.client.ApiClient.postInvestecCardToggleProgrammableFeature(
+        this.client.token.access_token,
+        this.CardKey,
+        enabled
+      );
+    if (isResponseBad(response)) {
+      throw new Error(
+        `not ok response while toggling programmable feature: ${{
+          cardKey: this.CardKey,
+          response,
+        }}`
+      );
+    }
+    this.IsProgrammable = response.Enabled;
+    return response.Enabled;
   }
 
   public async getSavedCode(): Promise<InvestecCardCode> {
@@ -129,7 +216,10 @@ export class Card implements InvestecCard {
     return savedCode.data.result;
   }
 
-  public async publishSavedCode(codeId: string): Promise<InvestecCardCode> {
+  public async publishSavedCode(
+    codeId: string,
+    code?: string
+  ): Promise<InvestecCardCode> {
     if (!this.client.token) {
       throw new Error("client is not set up");
     }
@@ -138,7 +228,8 @@ export class Card implements InvestecCard {
       await this.client.ApiClient.postInvestecCardPublishSavedCode(
         this.client.token.access_token,
         this.CardKey,
-        codeId
+        codeId,
+        code
       );
     if (isResponseBad(publishedCode)) {
       throw new Error(
