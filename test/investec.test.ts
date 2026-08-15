@@ -1,8 +1,8 @@
 import { createInvestecAPIClient } from "../lib/util/investec";
+import fetchModule from "node-fetch";
 
 jest.mock("node-fetch");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fetch = require("node-fetch") as jest.Mock;
+const fetch = fetchModule as unknown as jest.Mock;
 
 const okJson = (data: unknown) => ({
   status: 200,

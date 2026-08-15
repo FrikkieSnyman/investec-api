@@ -6,7 +6,7 @@
     "declaration": true,
     "outDir": "./dist",
     "strict": true,
-    "types": ["node", "jest"]
+    "skipLibCheck": true
   },
   "include": ["lib"]
 }
