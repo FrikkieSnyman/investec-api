@@ -13,7 +13,7 @@
   },
   "scripts": {
     "prep": "yarn install && yarn build && rm -rf node_modules && yarn --production",
-    "build": "rm -rf dist/ && tsc",
+    "build": "rm -rf dist/ && tsc -p tsconfig.build.json",
     "test": "jest",
     "lint": "eslint lib test"
   },
