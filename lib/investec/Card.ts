@@ -263,7 +263,8 @@ export class Card implements InvestecCard {
         }}`
       );
     }
-    return execution.data.result;
+    const result = execution.data.result;
+    return Array.isArray(result) ? result : result.executionItems;
   }
 
   public async getExecutions(): Promise<InvestecCardExecution[]> {
@@ -283,7 +284,8 @@ export class Card implements InvestecCard {
         }}`
       );
     }
-    return execution.data.result;
+    const result = execution.data.result;
+    return Array.isArray(result) ? result : result.executionItems;
   }
 
   public async getEnvironmentVariables(): Promise<InvestecCardEnvironmentVariables> {
