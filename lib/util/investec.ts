@@ -19,7 +19,6 @@ import {
   InvestecBeneficiariesResponse,
   InvestecBeneficiaryCategoriesResponse,
   InvestecDocumentsResponse,
-  InvestecPaymentAuthorisationOptions,
   InvestecProfileAccountsResponse,
   InvestecProfilesResponse,
 } from "./model";
@@ -267,14 +266,16 @@ export const createInvestecAPIClient = (
         toBeneficiaries,
       }: {
         fromAccountId: string;
-        toBeneficiaries: Array<
-          {
-            beneficiaryId: string;
-            amount: number;
-            myReference: string;
-            theirReference: string;
-          } & InvestecPaymentAuthorisationOptions
-        >;
+        toBeneficiaries: Array<{
+          beneficiaryId: string;
+          amount: number;
+          myReference: string;
+          theirReference: string;
+          authoriserAId?: string;
+          authoriserBId?: string;
+          authPeriodId?: string;
+          fasterPayment?: boolean;
+        }>;
       },
       realm: Realm = "private"
     ): Promise<InvestecAccountPaymentResponse> => {

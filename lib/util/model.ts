@@ -186,10 +186,9 @@ export interface InvestecBeneficiary {
 }
 
 export interface InvestecPaymentAuthorisationOptions {
-  authoriserAId?: string;
-  authoriserBId?: string;
-  authPeriodId?: string;
-  fasterPayment?: boolean;
+  aId?: string;
+  bId?: string;
+  periodId?: string;
 }
 
 export interface InvestecBeneficiaryCategory {

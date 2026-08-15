@@ -91,7 +91,7 @@ const transfer = await account.transfer(
       theirReference: string;
     }
   ],
-  profileId? // optional
+  profileId? // optional; defaults to the account's own profileId
 );
 ```
 
@@ -104,10 +104,9 @@ const payment = await account.pay([
     myReference: string;
     theirReference: string;
     amount: number;
-    // optional, for payments requiring authorisation:
-    authoriserAId?: string;
-    authoriserBId?: string;
-    authPeriodId?: string;
+    // optional, for payments requiring authorisation
+    // (ids come from client.getAuthorisationSetupDetails):
+    authorisation?: { aId?: string; bId?: string; periodId?: string };
     fasterPayment?: boolean;
    }
 ]);

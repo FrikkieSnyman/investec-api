@@ -185,7 +185,14 @@ export class Client {
         )}`
       );
     }
-    return accounts.data.map((a) => new Account(this, a, "private"));
+    return accounts.data.map(
+      (a) =>
+        new Account(
+          this,
+          { ...a, profileId: a.profileId ?? profileId },
+          "private"
+        )
+    );
   }
 
   public async getAuthorisationSetupDetails(

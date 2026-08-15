@@ -25,6 +25,7 @@ export class Account implements InvestecAccount {
   public accountName: string;
   public referenceName: string;
   public productName: string;
+  public profileId?: string;
   public realm: Realm;
   public meta: any;
   constructor(private client: Client, _account: InvestecAccount, realm: Realm) {
@@ -34,6 +35,7 @@ export class Account implements InvestecAccount {
     this.accountName = account.accountName;
     this.referenceName = account.referenceName;
     this.productName = account.productName;
+    this.profileId = account.profileId;
     this.meta = { ..._account };
     this.realm = realm;
   }
@@ -188,7 +190,7 @@ export class Account implements InvestecAccount {
             myReference: r.myReference,
             theirReference: r.theirReference,
           })),
-          profileId,
+          profileId: profileId ?? this.profileId,
         },
         this.realm
       );
@@ -204,14 +206,14 @@ export class Account implements InvestecAccount {
   }
 
   public async pay(
-    recipients: Array<
-      {
-        beneficiary: InvestecBeneficiary;
-        myReference: string;
-        theirReference: string;
-        amount: number;
-      } & InvestecPaymentAuthorisationOptions
-    >
+    recipients: Array<{
+      beneficiary: InvestecBeneficiary;
+      myReference: string;
+      theirReference: string;
+      amount: number;
+      authorisation?: InvestecPaymentAuthorisationOptions;
+      fasterPayment?: boolean;
+    }>
   ): Promise<InvestecPayment[]> {
     if (!this.client.token) {
       throw new Error("client is not set up");
@@ -226,9 +228,9 @@ export class Account implements InvestecAccount {
             amount: r.amount,
             myReference: r.myReference,
             theirReference: r.theirReference,
-            authoriserAId: r.authoriserAId,
-            authoriserBId: r.authoriserBId,
-            authPeriodId: r.authPeriodId,
+            authoriserAId: r.authorisation?.aId,
+            authoriserBId: r.authorisation?.bId,
+            authPeriodId: r.authorisation?.periodId,
             fasterPayment: r.fasterPayment,
           })),
         },
