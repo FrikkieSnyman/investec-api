@@ -13,6 +13,28 @@ import {
   isResponseBad,
 } from "../util/model";
 
+// the live API wraps executions in { executionItems, error }; the spec says
+// a plain array. Surface the wrapper's error, return the items either way.
+const unwrapExecutions = (
+  result:
+    | InvestecCardExecution[]
+    | { executionItems: InvestecCardExecution[]; error: any },
+  cardKey: string
+): InvestecCardExecution[] => {
+  if (Array.isArray(result)) {
+    return result;
+  }
+  if (result.error) {
+    throw new Error(
+      `error in executions response: ${JSON.stringify({
+        cardKey,
+        error: result.error,
+      })}`
+    );
+  }
+  return result.executionItems;
+};
+
 export class Card implements InvestecCard {
   public static async getCountries(
     client: Client
@@ -263,8 +285,7 @@ export class Card implements InvestecCard {
         }}`
       );
     }
-    const result = execution.data.result;
-    return Array.isArray(result) ? result : result.executionItems;
+    return unwrapExecutions(execution.data.result, this.CardKey);
   }
 
   public async getExecutions(): Promise<InvestecCardExecution[]> {
@@ -284,8 +305,7 @@ export class Card implements InvestecCard {
         }}`
       );
     }
-    const result = execution.data.result;
-    return Array.isArray(result) ? result : result.executionItems;
+    return unwrapExecutions(execution.data.result, this.CardKey);
   }
 
   public async getEnvironmentVariables(): Promise<InvestecCardEnvironmentVariables> {

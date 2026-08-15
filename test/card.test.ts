@@ -76,6 +76,19 @@ describe("Card", () => {
     expect(executions).toEqual([{ executionId: "ex-1" }]);
   });
 
+  it("throws when the executions wrapper carries an error", async () => {
+    const getInvestecCardExecutions = jest.fn().mockResolvedValue({
+      data: {
+        result: { executionItems: [], error: "something broke" },
+      },
+    });
+    const card = new Card(
+      makeFakeClient({ getInvestecCardExecutions }),
+      rawCard
+    );
+    await expect(card.getExecutions()).rejects.toThrow("something broke");
+  });
+
   it("returns executions when the API sends a plain array", async () => {
     const getInvestecCardExecutions = jest.fn().mockResolvedValue({
       data: { result: [{ executionId: "ex-1" }] },
