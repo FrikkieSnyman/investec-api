@@ -262,23 +262,23 @@ export interface InvestecBusinessTransaction {
   transactionCodeDescription: string | null;
   cardNumber: string | null;
   cardHolderName: string | null;
-  paymentId: string | null;
+  paymentId: string;
   counterPartyAccountNumber: string | null;
   bulkId: string | null;
   numberOfTransactions: number | null;
-  clientStatementReference: string | null;
-  uetr: string | null;
+  clientStatementReference: string;
+  uetr: string;
   fileId: string | null;
-  statementId: string | null;
+  statementId: string;
   statementNumber: string | null;
   swiftStatementNumber: string | null;
   matchedCardKey: string | null;
-  paymentReference: string | null;
+  paymentReference: string;
   drCrIndicator: InvestecTransactionType;
   electronicAccountNumber: string | null;
   transactionStatus: string;
   runningBalance: number;
-  supplementaryId: string | null;
+  supplementaryId: string;
   transactionCode: string;
   currencyCode: string;
   transactionAmount: number;
@@ -305,8 +305,13 @@ export interface InvestecBusinessPaymentStatus {
   format: string; // e.g. "XML Pain 002.001.10"
   payload: {
     compression: string;
+    encryption?: {
+      algorithm?: string;
+      keyName?: string;
+      initialVector?: string;
+    };
     body: {
-      content: string;
+      content: string; // base64 encoded pain.002 status report
       contentEncoding: string;
     };
   };
@@ -444,9 +449,10 @@ export type InvestecBusinessTransactionsResponse =
       };
     };
 
-export type InvestecBusinessPaymentResponse = InvestecGenericResponse<{
-  paymentId: string;
-}>;
+// unlike the generic envelope, the payment response has no links/meta
+export type InvestecBusinessPaymentResponse =
+  | Status
+  | { data: { paymentId: string } };
 
 export type InvestecBusinessPaymentStatusResponse =
   | Status
