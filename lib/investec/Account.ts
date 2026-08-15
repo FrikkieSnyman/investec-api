@@ -25,7 +25,9 @@ export class Account implements InvestecAccount {
   public accountName: string;
   public referenceName: string;
   public productName: string;
-  public profileId?: string;
+  public kycCompliant: boolean;
+  public profileId: string;
+  public profileName: string;
   public realm: Realm;
   public meta: any;
   constructor(private client: Client, _account: InvestecAccount, realm: Realm) {
@@ -35,7 +37,9 @@ export class Account implements InvestecAccount {
     this.accountName = account.accountName;
     this.referenceName = account.referenceName;
     this.productName = account.productName;
+    this.kycCompliant = account.kycCompliant;
     this.profileId = account.profileId;
+    this.profileName = account.profileName;
     this.meta = { ..._account };
     this.realm = realm;
   }

@@ -8,6 +8,9 @@ const rawAccount: InvestecAccount = {
   accountName: "Mr John Doe",
   referenceName: "My Account",
   productName: "Private Bank Account",
+  kycCompliant: true,
+  profileId: "prof-default",
+  profileName: "My Profile",
   meta: {},
 };
 
@@ -87,6 +90,7 @@ describe("Account", () => {
         toAccounts: [
           { accountId: "acc-2", amount: 10, myReference: "m", theirReference: "t" },
         ],
+        profileId: "prof-default",
       },
       "private"
     );

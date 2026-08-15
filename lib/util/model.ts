@@ -18,9 +18,9 @@ export interface InvestecAccount {
   accountName: string;
   referenceName: string;
   productName: string;
-  kycCompliant?: boolean;
-  profileId?: string;
-  profileName?: string;
+  kycCompliant: boolean;
+  profileId: string;
+  profileName: string;
   meta: any;
 }
 
@@ -117,9 +117,9 @@ export interface InvestecAccountBalance {
   accountId: string;
   currentBalance: number;
   availableBalance: number;
-  budgetBalance?: number;
-  straightBalance?: number;
-  cashBalance?: number;
+  budgetBalance: number;
+  straightBalance: number;
+  cashBalance: number;
   currency: string;
 }
 
@@ -137,7 +137,7 @@ export interface InvestecTransaction {
   transactionDate: string; // ISO8601 date (yyyy-mm-dd)
   amount: number;
   runningBalance: number;
-  uuid?: string;
+  uuid: string;
 }
 
 export interface InvestecPendingTransaction {
