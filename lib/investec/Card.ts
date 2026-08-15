@@ -79,8 +79,8 @@ export class Card implements InvestecCard {
   public CardTypeCode: string;
   public AccountNumber: string;
   public AccountId: string;
-  public EmbossedName?: string;
-  public IsVirtualCard?: boolean;
+  public EmbossedName: string;
+  public IsVirtualCard: boolean;
   constructor(private client: Client, card: InvestecCard) {
     this.CardKey = card.CardKey;
     this.CardNumber = card.CardNumber;

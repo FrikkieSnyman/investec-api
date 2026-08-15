@@ -60,8 +60,8 @@ export interface InvestecCard {
   CardTypeCode: string;
   AccountNumber: string;
   AccountId: string;
-  EmbossedName?: string;
-  IsVirtualCard?: boolean;
+  EmbossedName: string;
+  IsVirtualCard: boolean;
 }
 
 export interface InvestecCreateVirtualCardInput {
