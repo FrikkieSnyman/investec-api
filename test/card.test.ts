@@ -62,6 +62,45 @@ describe("Card", () => {
     );
   });
 
+  it("unwraps the live API's executionItems wrapper on getExecutions", async () => {
+    const getInvestecCardExecutions = jest.fn().mockResolvedValue({
+      data: {
+        result: { executionItems: [{ executionId: "ex-1" }], error: null },
+      },
+    });
+    const card = new Card(
+      makeFakeClient({ getInvestecCardExecutions }),
+      rawCard
+    );
+    const executions = await card.getExecutions();
+    expect(executions).toEqual([{ executionId: "ex-1" }]);
+  });
+
+  it("throws when the executions wrapper carries an error", async () => {
+    const getInvestecCardExecutions = jest.fn().mockResolvedValue({
+      data: {
+        result: { executionItems: [], error: "something broke" },
+      },
+    });
+    const card = new Card(
+      makeFakeClient({ getInvestecCardExecutions }),
+      rawCard
+    );
+    await expect(card.getExecutions()).rejects.toThrow("something broke");
+  });
+
+  it("returns executions when the API sends a plain array", async () => {
+    const getInvestecCardExecutions = jest.fn().mockResolvedValue({
+      data: { result: [{ executionId: "ex-1" }] },
+    });
+    const card = new Card(
+      makeFakeClient({ getInvestecCardExecutions }),
+      rawCard
+    );
+    const executions = await card.getExecutions();
+    expect(executions).toEqual([{ executionId: "ex-1" }]);
+  });
+
   it("gets countries via the static helper", async () => {
     const getInvestecCardCountries = jest.fn().mockResolvedValue({
       data: { result: [{ Code: "ZA", Name: "South Africa" }] },

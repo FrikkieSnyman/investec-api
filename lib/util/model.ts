@@ -52,11 +52,12 @@ export const investecAuthoriserSchema = z.object({
 });
 export type InvestecAuthoriser = z.infer<typeof investecAuthoriserSchema>;
 
+// the lists are null on accounts with no payment authorisation configured
 export const investecAuthorisationSetupDetailsSchema = z.object({
   numberOfAuthorisationRequired: z.string(),
-  period: z.array(investecAuthorisationPeriodSchema),
-  authorisersListA: z.array(investecAuthoriserSchema),
-  authorisersListB: z.array(investecAuthoriserSchema),
+  period: z.array(investecAuthorisationPeriodSchema).nullable(),
+  authorisersListA: z.array(investecAuthoriserSchema).nullable(),
+  authorisersListB: z.array(investecAuthoriserSchema).nullable(),
 });
 export type InvestecAuthorisationSetupDetails = z.infer<
   typeof investecAuthorisationSetupDetailsSchema
@@ -128,7 +129,7 @@ export const investecCardCodeSchema = z.object({
   code: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  publishedAt: z.string(),
+  publishedAt: z.string().nullable(),
   error: z.any(),
 });
 export type InvestecCardCode = z.infer<typeof investecCardCodeSchema>;
@@ -195,17 +196,19 @@ export type InvestecAccountBalance = z.infer<
   typeof investecAccountBalanceSchema
 >;
 
+// cardNumber and the posting/value/action dates come back null on rows
+// merged in by includePending; the spec claims plain strings
 export const investecTransactionSchema = z.object({
   accountId: z.string(),
   type: transactionTypeSchema,
   transactionType: z.string().nullable(),
   status: z.string(),
   description: z.string(),
-  cardNumber: z.string(),
+  cardNumber: z.string().nullable(),
   postedOrder: z.number(),
-  postingDate: z.string(), // ISO8601 date (yyyy-mm-dd)
-  valueDate: z.string(), // ISO8601 date (yyyy-mm-dd)
-  actionDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  postingDate: z.string().nullable(), // ISO8601 date (yyyy-mm-dd)
+  valueDate: z.string().nullable(), // ISO8601 date (yyyy-mm-dd)
+  actionDate: z.string().nullable(), // ISO8601 date (yyyy-mm-dd)
   transactionDate: z.string(), // ISO8601 date (yyyy-mm-dd)
   amount: z.number(),
   runningBalance: z.number(),
@@ -253,8 +256,8 @@ export const investecBeneficiarySchema = z.object({
   beneficiaryName: z.string(),
   lastPaymentAmount: z.string(),
   lastPaymentDate: z.string(),
-  cellNo: z.string(),
-  emailAddress: z.string(),
+  cellNo: z.string().nullable(),
+  emailAddress: z.string().nullable(),
   name: z.string(),
   referenceAccountNumber: z.string(),
   referenceName: z.string(),
@@ -516,8 +519,18 @@ export type InvestecCardCodeResponse =
   | Status
   | z.infer<typeof investecCardCodeResponseSchema>;
 
+// the spec documents result as an array, but the live API wraps it in
+// { executionItems, error }; accept both
 export const investecCardExecutionResponseSchema = okResponseSchema(
-  z.object({ result: z.array(investecCardExecutionSchema) })
+  z.object({
+    result: z.union([
+      z.array(investecCardExecutionSchema),
+      z.object({
+        executionItems: z.array(investecCardExecutionSchema),
+        error: z.any(),
+      }),
+    ]),
+  })
 );
 export type InvestecCardExecutionResponse =
   | Status
