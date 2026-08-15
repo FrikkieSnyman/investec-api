@@ -30,6 +30,25 @@ If you start to get errors about the token no longer being valid, simply call:
 await client.authenticate();
 ```
 
+## Response validation
+
+Every API response is checked against a zod schema derived from Investec's OpenAPI specs, since the spec and the live API have been known to drift.
+
+```ts
+const client = await Client.create(id, secret, apiKey, baseUrl, {
+  validation: "warn", // "warn" (default) | "strict" | "off"
+  onValidationWarning: (endpoint, issues) => {
+    // default logs to console.warn
+  },
+});
+```
+
+- `warn` (default): mismatches are reported (endpoint + field path) and the data is returned as-is.
+- `strict`: mismatches throw an `InvestecValidationError`.
+- `off`: no validation.
+
+Unknown extra fields never warn; only missing or wrongly-typed known fields do.
+
 ## Accounts (Private Banking)
 
 ### List accounts

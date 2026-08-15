@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type InvestecTransactionType = "DEBIT" | "CREDIT";
 
 export type InvestecTransactionTransactionType =
@@ -12,57 +14,72 @@ export type InvestecTransactionTransactionType =
   | null; // what are the values here?
 export type InvestecTransactionStatus = string; // what are the values here? "POSTED"
 
-export interface InvestecAccount {
-  accountId: string;
-  accountNumber: string;
-  accountName: string;
-  referenceName: string;
-  productName: string;
-  kycCompliant: boolean;
-  profileId: string;
-  profileName: string;
-  meta: any;
-}
+const transactionTypeSchema = z.enum(["DEBIT", "CREDIT"]);
 
-export interface InvestecProfile {
-  profileId: string;
-  profileName: string;
-  defaultProfile: boolean;
-}
+export const investecAccountSchema = z.object({
+  accountId: z.string(),
+  accountNumber: z.string(),
+  accountName: z.string(),
+  referenceName: z.string(),
+  productName: z.string(),
+  kycCompliant: z.boolean(),
+  profileId: z.string(),
+  profileName: z.string(),
+});
+// meta is set by this library on Account instances, not returned by the API
+export type InvestecAccount = z.infer<typeof investecAccountSchema> & {
+  meta?: any;
+};
 
-export interface InvestecAuthorisationPeriod {
-  id: string;
-  description: string;
-}
+export const investecProfileSchema = z.object({
+  profileId: z.string(),
+  profileName: z.string(),
+  defaultProfile: z.boolean(),
+});
+export type InvestecProfile = z.infer<typeof investecProfileSchema>;
 
-export interface InvestecAuthoriser {
-  authoriserId: string;
-  name: string;
-}
+export const investecAuthorisationPeriodSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+});
+export type InvestecAuthorisationPeriod = z.infer<
+  typeof investecAuthorisationPeriodSchema
+>;
 
-export interface InvestecAuthorisationSetupDetails {
-  numberOfAuthorisationRequired: string;
-  period: InvestecAuthorisationPeriod[];
-  authorisersListA: InvestecAuthoriser[];
-  authorisersListB: InvestecAuthoriser[];
-}
+export const investecAuthoriserSchema = z.object({
+  authoriserId: z.string(),
+  name: z.string(),
+});
+export type InvestecAuthoriser = z.infer<typeof investecAuthoriserSchema>;
 
-export interface InvestecDocument {
-  documentType: string;
-  documentDate: string;
-}
+export const investecAuthorisationSetupDetailsSchema = z.object({
+  numberOfAuthorisationRequired: z.string(),
+  period: z.array(investecAuthorisationPeriodSchema),
+  authorisersListA: z.array(investecAuthoriserSchema),
+  authorisersListB: z.array(investecAuthoriserSchema),
+});
+export type InvestecAuthorisationSetupDetails = z.infer<
+  typeof investecAuthorisationSetupDetailsSchema
+>;
 
-export interface InvestecCard {
-  CardKey: string;
-  CardNumber: string;
-  IsProgrammable: boolean;
-  Status: string;
-  CardTypeCode: string;
-  AccountNumber: string;
-  AccountId: string;
-  EmbossedName: string;
-  IsVirtualCard: boolean;
-}
+export const investecDocumentSchema = z.object({
+  documentType: z.string(),
+  documentDate: z.string(),
+});
+export type InvestecDocument = z.infer<typeof investecDocumentSchema>;
+
+export const investecCardSchema = z.object({
+  CardKey: z.string(),
+  CardNumber: z.string(),
+  IsProgrammable: z.boolean(),
+  Status: z.string(),
+  CardTypeCode: z.string(),
+  AccountNumber: z.string(),
+  AccountId: z.string(),
+  EmbossedName: z.string(),
+  IsVirtualCard: z.boolean(),
+});
+export type InvestecCard = z.infer<typeof investecCardSchema>;
 
 export interface InvestecCreateVirtualCardInput {
   accountNumber: string;
@@ -70,27 +87,33 @@ export interface InvestecCreateVirtualCardInput {
   embossName2?: string;
 }
 
-export interface InvestecCreatedVirtualCard {
-  CardKey: string;
-  IsVirtualCard: boolean;
-  EmbossName: string;
-  EmbossName2: string;
-}
+export const investecCreatedVirtualCardSchema = z.object({
+  CardKey: z.string(),
+  IsVirtualCard: z.boolean(),
+  EmbossName: z.string(),
+  EmbossName2: z.string(),
+});
+export type InvestecCreatedVirtualCard = z.infer<
+  typeof investecCreatedVirtualCardSchema
+>;
 
-export interface InvestecCardDetails {
-  CardKeyHash: string;
-  MaskedCardNumber: string;
-  EmbossName: string;
-  EmbossName2: string;
-  Status: string;
-  AccountNumber: string;
-  IsVirtualCard: boolean;
-  ExtendedDetails: {
-    CardNumber: string;
-    ExpiryDate: string;
-    CVV2: string;
-  } | null;
-}
+export const investecCardDetailsSchema = z.object({
+  CardKeyHash: z.string(),
+  MaskedCardNumber: z.string(),
+  EmbossName: z.string(),
+  EmbossName2: z.string(),
+  Status: z.string(),
+  AccountNumber: z.string(),
+  IsVirtualCard: z.boolean(),
+  ExtendedDetails: z
+    .object({
+      CardNumber: z.string(),
+      ExpiryDate: z.string(),
+      CVV2: z.string(),
+    })
+    .nullable(),
+});
+export type InvestecCardDetails = z.infer<typeof investecCardDetailsSchema>;
 
 export interface InvestecSensitiveCardDetailsInput {
   keyId: number;
@@ -100,14 +123,15 @@ export interface InvestecSensitiveCardDetailsInput {
   exponent: string;
 }
 
-export interface InvestecCardCode {
-  codeId: string;
-  code: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  error: any;
-}
+export const investecCardCodeSchema = z.object({
+  codeId: z.string(),
+  code: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  publishedAt: z.string(),
+  error: z.any(),
+});
+export type InvestecCardCode = z.infer<typeof investecCardCodeSchema>;
 
 export interface InvestecSimulateExecutionInput {
   code: string;
@@ -118,110 +142,127 @@ export interface InvestecSimulateExecutionInput {
   countryCode: string;
 }
 
-export interface InvestecCardExecution {
-  executionId: string;
-  rootCodeFunctionId: string;
-  sandbox: boolean;
-  type: "before_transaction" | "after_transaction";
-  authorizationApproved: boolean | null;
-  logs: Array<{
-    createdAt: string;
-    level: string;
-    content: string;
-  }>;
-  smsCount: number;
-  emailCount: number;
-  pushNotificationCount: number;
-  createdAt: string;
-  startedAt: string;
-  completedAt: string;
-  updatedAt: string;
-  Error: any;
-}
+export const investecCardExecutionSchema = z.object({
+  executionId: z.string(),
+  rootCodeFunctionId: z.string(),
+  sandbox: z.boolean(),
+  type: z.enum(["before_transaction", "after_transaction"]),
+  authorizationApproved: z.boolean().nullable(),
+  logs: z.array(
+    z.object({
+      createdAt: z.string(),
+      level: z.string(),
+      content: z.string(),
+    })
+  ),
+  smsCount: z.number(),
+  emailCount: z.number(),
+  pushNotificationCount: z.number(),
+  createdAt: z.string(),
+  startedAt: z.string(),
+  completedAt: z.string(),
+  updatedAt: z.string(),
+  Error: z.any(),
+});
+export type InvestecCardExecution = z.infer<typeof investecCardExecutionSchema>;
 
-export interface InvestecCardEnvironmentVariables {
-  variables: { [key in string]: string | number | boolean | Object };
-  createdAt: string;
-  updatedAt: string;
-  error: any;
-}
+export const investecCardEnvironmentVariablesSchema = z.object({
+  variables: z.record(z.string(), z.unknown()),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  error: z.any(),
+});
+export type InvestecCardEnvironmentVariables = z.infer<
+  typeof investecCardEnvironmentVariablesSchema
+>;
 
-export interface InvestecNameAndCode {
-  Code: string;
-  Name: string;
-}
+export const investecNameAndCodeSchema = z.object({
+  Code: z.string(),
+  Name: z.string(),
+});
+export type InvestecNameAndCode = z.infer<typeof investecNameAndCodeSchema>;
 
-export interface InvestecAccountBalance {
-  accountId: string;
-  currentBalance: number;
-  availableBalance: number;
-  budgetBalance: number;
-  straightBalance: number;
-  cashBalance: number;
-  currency: string;
-}
+export const investecAccountBalanceSchema = z.object({
+  accountId: z.string(),
+  currentBalance: z.number(),
+  availableBalance: z.number(),
+  budgetBalance: z.number(),
+  straightBalance: z.number(),
+  cashBalance: z.number(),
+  currency: z.string(),
+});
+export type InvestecAccountBalance = z.infer<
+  typeof investecAccountBalanceSchema
+>;
 
-export interface InvestecTransaction {
-  accountId: string;
-  type: InvestecTransactionType;
-  transactionType: InvestecTransactionTransactionType;
-  status: InvestecTransactionStatus;
-  description: string;
-  cardNumber: string;
-  postedOrder: number;
-  postingDate: string; // ISO8601 date (yyyy-mm-dd)
-  valueDate: string; // ISO8601 date (yyyy-mm-dd)
-  actionDate: string; // ISO8601 date (yyyy-mm-dd)
-  transactionDate: string; // ISO8601 date (yyyy-mm-dd)
-  amount: number;
-  runningBalance: number;
-  uuid: string;
-}
+export const investecTransactionSchema = z.object({
+  accountId: z.string(),
+  type: transactionTypeSchema,
+  transactionType: z.string().nullable(),
+  status: z.string(),
+  description: z.string(),
+  cardNumber: z.string(),
+  postedOrder: z.number(),
+  postingDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  valueDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  actionDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  transactionDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  amount: z.number(),
+  runningBalance: z.number(),
+  uuid: z.string(),
+});
+export type InvestecTransaction = z.infer<typeof investecTransactionSchema>;
 
-export interface InvestecPendingTransaction {
-  accountId: string;
-  type: InvestecTransactionType;
-  status: InvestecTransactionStatus;
-  description: string;
-  transactionDate: string; // ISO8601 date (yyyy-mm-dd)
-  amount: number;
-}
+export const investecPendingTransactionSchema = z.object({
+  accountId: z.string(),
+  type: transactionTypeSchema,
+  status: z.string(),
+  description: z.string(),
+  transactionDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  amount: z.number(),
+});
+export type InvestecPendingTransaction = z.infer<
+  typeof investecPendingTransactionSchema
+>;
 
-export interface InvestecTransfer {
-  PaymentReferenceNumber: string;
-  PaymentDate: string;
-  Status: string;
-  BeneficiaryName: string;
-  BeneficiaryAccountId: string;
-  AuthorisationRequired: boolean;
-}
+export const investecTransferSchema = z.object({
+  PaymentReferenceNumber: z.string(),
+  PaymentDate: z.string(),
+  Status: z.string(),
+  BeneficiaryName: z.string(),
+  BeneficiaryAccountId: z.string(),
+  AuthorisationRequired: z.boolean(),
+});
+export type InvestecTransfer = z.infer<typeof investecTransferSchema>;
 
-export interface InvestecPayment {
-  PaymentReferenceNumber: string;
-  PaymentDate: string;
-  Status: string;
-  BeneficiaryName: string;
-  BeneficiaryAccountId: string;
-  AuthorisationRequired: boolean;
-}
+export const investecPaymentSchema = z.object({
+  PaymentReferenceNumber: z.string(),
+  PaymentDate: z.string(),
+  Status: z.string(),
+  BeneficiaryName: z.string(),
+  BeneficiaryAccountId: z.string(),
+  AuthorisationRequired: z.boolean(),
+});
+export type InvestecPayment = z.infer<typeof investecPaymentSchema>;
 
-export interface InvestecBeneficiary {
-  beneficiaryId: string;
-  accountNumber: string;
-  code: string;
-  bank: string;
-  beneficiaryName: string;
-  lastPaymentAmount: string;
-  lastPaymentDate: string;
-  cellNo: string;
-  emailAddress: string;
-  name: string;
-  referenceAccountNumber: string;
-  referenceName: string;
-  categoryId: string;
-  profileId: string;
-  fasterPaymentAllowed?: boolean;
-}
+export const investecBeneficiarySchema = z.object({
+  beneficiaryId: z.string(),
+  accountNumber: z.string(),
+  code: z.string(),
+  bank: z.string(),
+  beneficiaryName: z.string(),
+  lastPaymentAmount: z.string(),
+  lastPaymentDate: z.string(),
+  cellNo: z.string(),
+  emailAddress: z.string(),
+  name: z.string(),
+  referenceAccountNumber: z.string(),
+  referenceName: z.string(),
+  categoryId: z.string(),
+  profileId: z.string(),
+  fasterPaymentAllowed: z.boolean().optional(),
+});
+export type InvestecBeneficiary = z.infer<typeof investecBeneficiarySchema>;
 
 export interface InvestecPaymentAuthorisationOptions {
   aId?: string;
@@ -229,60 +270,69 @@ export interface InvestecPaymentAuthorisationOptions {
   periodId?: string;
 }
 
-export interface InvestecBeneficiaryCategory {
-  id: string;
-  isDefault: string;
-  name: string;
-}
+export const investecBeneficiaryCategorySchema = z.object({
+  id: z.string(),
+  isDefault: z.string(),
+  name: z.string(),
+});
+export type InvestecBeneficiaryCategory = z.infer<
+  typeof investecBeneficiaryCategorySchema
+>;
 
-export interface InvestecBusinessAccount {
-  accountId: string;
-  accountName: string;
-  accountNumber: string;
-  accountType: string;
-  electronicAccountNumber: string | null;
-  nickName: string;
-  availableBalance: number;
-  balance: number;
-  currencyCode: string;
-}
+export const investecBusinessAccountSchema = z.object({
+  accountId: z.string(),
+  accountName: z.string(),
+  accountNumber: z.string(),
+  accountType: z.string(),
+  electronicAccountNumber: z.string().nullable(),
+  nickName: z.string(),
+  availableBalance: z.number(),
+  balance: z.number(),
+  currencyCode: z.string(),
+});
+export type InvestecBusinessAccount = z.infer<
+  typeof investecBusinessAccountSchema
+>;
 
-export interface InvestecBusinessTransaction {
-  accountId: string;
-  accountName: string;
-  accountNumber: string;
-  accountType: string;
-  lineId: string;
-  transactionId: string;
-  transactionDescription: string;
-  postDate: string; // ISO8601 date (yyyy-mm-dd)
-  valueDate: string; // ISO8601 date (yyyy-mm-dd)
-  deposit: number;
-  withdrawal: number;
-  transactionCodeDescription: string | null;
-  cardNumber: string | null;
-  cardHolderName: string | null;
-  paymentId: string;
-  counterPartyAccountNumber: string | null;
-  bulkId: string | null;
-  numberOfTransactions: number | null;
-  clientStatementReference: string;
-  uetr: string;
-  fileId: string | null;
-  statementId: string;
-  statementNumber: string | null;
-  swiftStatementNumber: string | null;
-  matchedCardKey: string | null;
-  paymentReference: string;
-  drCrIndicator: InvestecTransactionType;
-  electronicAccountNumber: string | null;
-  transactionStatus: string;
-  runningBalance: number;
-  supplementaryId: string;
-  transactionCode: string;
-  currencyCode: string;
-  transactionAmount: number;
-}
+export const investecBusinessTransactionSchema = z.object({
+  accountId: z.string(),
+  accountName: z.string(),
+  accountNumber: z.string(),
+  accountType: z.string(),
+  lineId: z.string(),
+  transactionId: z.string(),
+  transactionDescription: z.string(),
+  postDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  valueDate: z.string(), // ISO8601 date (yyyy-mm-dd)
+  deposit: z.number(),
+  withdrawal: z.number(),
+  transactionCodeDescription: z.string().nullable(),
+  cardNumber: z.string().nullable(),
+  cardHolderName: z.string().nullable(),
+  paymentId: z.string(),
+  counterPartyAccountNumber: z.string().nullable(),
+  bulkId: z.string().nullable(),
+  numberOfTransactions: z.number().nullable(),
+  clientStatementReference: z.string(),
+  uetr: z.string(),
+  fileId: z.string().nullable(),
+  statementId: z.string(),
+  statementNumber: z.string().nullable(),
+  swiftStatementNumber: z.string().nullable(),
+  matchedCardKey: z.string().nullable(),
+  paymentReference: z.string(),
+  drCrIndicator: transactionTypeSchema,
+  electronicAccountNumber: z.string().nullable(),
+  transactionStatus: z.string(),
+  runningBalance: z.number(),
+  supplementaryId: z.string(),
+  transactionCode: z.string(),
+  currencyCode: z.string(),
+  transactionAmount: z.number(),
+});
+export type InvestecBusinessTransaction = z.infer<
+  typeof investecBusinessTransactionSchema
+>;
 
 export interface InvestecBusinessPaymentRemittance {
   format: string; // e.g. "XMLPain NEWSTDD" - PAIN.001 ISO 20022 Standard
@@ -301,38 +351,45 @@ export interface InvestecBusinessPaymentRemittance {
   subFormat?: string;
 }
 
-export interface InvestecBusinessPaymentStatus {
-  format: string; // e.g. "XML Pain 002.001.10"
-  payload: {
-    compression: string;
-    encryption?: {
-      algorithm?: string;
-      keyName?: string;
-      initialVector?: string;
-    };
-    body: {
-      content: string; // base64 encoded pain.002 status report
-      contentEncoding: string;
-    };
-  };
-}
+export const investecBusinessPaymentStatusSchema = z.object({
+  format: z.string(), // e.g. "XML Pain 002.001.10"
+  payload: z.object({
+    compression: z.string(),
+    encryption: z
+      .object({
+        algorithm: z.string().optional(),
+        keyName: z.string().optional(),
+        initialVector: z.string().optional(),
+      })
+      .optional(),
+    body: z.object({
+      content: z.string(), // base64 encoded pain.002 status report
+      contentEncoding: z.string(),
+    }),
+  }),
+});
+export type InvestecBusinessPaymentStatus = z.infer<
+  typeof investecBusinessPaymentStatusSchema
+>;
 
-export interface InvestecBusinessCompany {
-  companyName: string;
-  companyFullName?: string;
-}
+export const investecBusinessCompanySchema = z.object({
+  companyName: z.string(),
+  companyFullName: z.string().optional(),
+});
+export type InvestecBusinessCompany = z.infer<
+  typeof investecBusinessCompanySchema
+>;
 
 type Status = { status: number };
-type InvestecGenericOKResponse<Data> = {
-  data: Data;
-  links: {
-    self: string | null;
-  };
-  meta: {
-    totalPages: number;
-  };
-};
-type InvestecGenericResponse<Data> = Status | InvestecGenericOKResponse<Data>;
+
+const linksSchema = z.object({ self: z.string().nullable() });
+const metaSchema = z.object({ totalPages: z.number() }).partial();
+const okResponseSchema = <T extends z.ZodType>(data: T) =>
+  z.object({
+    data,
+    links: linksSchema.optional(),
+    meta: metaSchema.optional(),
+  });
 
 export type Scope =
   | "accounts"
@@ -344,123 +401,208 @@ export type Scope =
   | "documents.statements"
   | "documents.taxcertificates";
 
+export const investecTokenSchema = z.object({
+  access_token: z.string(),
+  token_type: z.literal("Bearer"),
+  expires_in: z.number(),
+  scope: z.string(),
+  refresh_token: z.string().optional(),
+});
+export type InvestecToken = z.infer<typeof investecTokenSchema>;
+
 export type InvestecAuthResponse = Status | InvestecToken;
 
-export type InvestecToken = {
-  access_token: string;
-  token_type: "Bearer";
-  expires_in: number;
-  scope: Scope;
-  refresh_token?: string;
-};
-export type InvestecAccountsResponse = InvestecGenericResponse<{
-  accounts: InvestecAccount[];
-}>;
+export const investecAccountsResponseSchema = okResponseSchema(
+  z.object({ accounts: z.array(investecAccountSchema) })
+);
+export type InvestecAccountsResponse =
+  | Status
+  | z.infer<typeof investecAccountsResponseSchema>;
 
+export const investecAccountBalanceResponseSchema = okResponseSchema(
+  investecAccountBalanceSchema
+);
 export type InvestecAccountBalanceResponse =
-  InvestecGenericResponse<InvestecAccountBalance>;
+  | Status
+  | z.infer<typeof investecAccountBalanceResponseSchema>;
 
-export type InvestecAccountTransactionsResponse = InvestecGenericResponse<{
-  transactions: InvestecTransaction[];
-}>;
+export const investecAccountTransactionsResponseSchema = okResponseSchema(
+  z.object({ transactions: z.array(investecTransactionSchema) })
+);
+export type InvestecAccountTransactionsResponse =
+  | Status
+  | z.infer<typeof investecAccountTransactionsResponseSchema>;
 
+export const investecAccountPendingTransactionsResponseSchema =
+  okResponseSchema(
+    z.object({ transactions: z.array(investecPendingTransactionSchema) })
+  );
 export type InvestecAccountPendingTransactionsResponse =
-  InvestecGenericResponse<{
-    transactions: InvestecPendingTransaction[];
-  }>;
+  | Status
+  | z.infer<typeof investecAccountPendingTransactionsResponseSchema>;
 
-export type InvestecProfilesResponse = InvestecGenericResponse<
-  InvestecProfile[]
->;
+export const investecProfilesResponseSchema = okResponseSchema(
+  z.array(investecProfileSchema)
+);
+export type InvestecProfilesResponse =
+  | Status
+  | z.infer<typeof investecProfilesResponseSchema>;
 
-export type InvestecProfileAccountsResponse = InvestecGenericResponse<
-  InvestecAccount[]
->;
+export const investecProfileAccountsResponseSchema = okResponseSchema(
+  z.array(investecAccountSchema)
+);
+export type InvestecProfileAccountsResponse =
+  | Status
+  | z.infer<typeof investecProfileAccountsResponseSchema>;
 
+export const investecAuthorisationSetupDetailsResponseSchema =
+  okResponseSchema(investecAuthorisationSetupDetailsSchema);
 export type InvestecAuthorisationSetupDetailsResponse =
-  InvestecGenericResponse<InvestecAuthorisationSetupDetails>;
+  | Status
+  | z.infer<typeof investecAuthorisationSetupDetailsResponseSchema>;
 
-export type InvestecDocumentsResponse = InvestecGenericResponse<
-  InvestecDocument[]
->;
+export const investecDocumentsResponseSchema = okResponseSchema(
+  z.array(investecDocumentSchema)
+);
+export type InvestecDocumentsResponse =
+  | Status
+  | z.infer<typeof investecDocumentsResponseSchema>;
 
-export type InvestecAccountTransferResponse = InvestecGenericResponse<{
-  TransferResponses: InvestecTransfer[];
-  ErrorMessage: any;
-}>;
+export const investecAccountTransferResponseSchema = okResponseSchema(
+  z.object({
+    TransferResponses: z.array(investecTransferSchema),
+    ErrorMessage: z.any(),
+  })
+);
+export type InvestecAccountTransferResponse =
+  | Status
+  | z.infer<typeof investecAccountTransferResponseSchema>;
 
-export type InvestecAccountPaymentResponse = InvestecGenericResponse<{
-  TransferResponses: InvestecPayment[];
-  ErrorMessage: string
-}>;
+export const investecAccountPaymentResponseSchema = okResponseSchema(
+  z.object({
+    TransferResponses: z.array(investecPaymentSchema),
+    ErrorMessage: z.any(),
+  })
+);
+export type InvestecAccountPaymentResponse =
+  | Status
+  | z.infer<typeof investecAccountPaymentResponseSchema>;
 
-export type InvestecBeneficiariesResponse = InvestecGenericResponse<InvestecBeneficiary[]>;
+export const investecBeneficiariesResponseSchema = okResponseSchema(
+  z.array(investecBeneficiarySchema)
+);
+export type InvestecBeneficiariesResponse =
+  | Status
+  | z.infer<typeof investecBeneficiariesResponseSchema>;
 
-export type InvestecBeneficiaryCategoriesResponse = InvestecGenericResponse<InvestecBeneficiaryCategory[]>;
+export const investecBeneficiaryCategoriesResponseSchema = okResponseSchema(
+  z.array(investecBeneficiaryCategorySchema)
+);
+export type InvestecBeneficiaryCategoriesResponse =
+  | Status
+  | z.infer<typeof investecBeneficiaryCategoriesResponseSchema>;
 
-export type InvestecCardsResponse = InvestecGenericResponse<{
-  cards: InvestecCard[];
-}>;
+export const investecCardsResponseSchema = okResponseSchema(
+  z.object({ cards: z.array(investecCardSchema) })
+);
+export type InvestecCardsResponse =
+  | Status
+  | z.infer<typeof investecCardsResponseSchema>;
 
-export type InvestecCardCodeResponse = InvestecGenericResponse<{
-  result: InvestecCardCode;
-}>;
+export const investecCardCodeResponseSchema = okResponseSchema(
+  z.object({ result: investecCardCodeSchema })
+);
+export type InvestecCardCodeResponse =
+  | Status
+  | z.infer<typeof investecCardCodeResponseSchema>;
 
-export type InvestecCardExecutionResponse = InvestecGenericResponse<{
-  result: InvestecCardExecution[];
-}>;
+export const investecCardExecutionResponseSchema = okResponseSchema(
+  z.object({ result: z.array(investecCardExecutionSchema) })
+);
+export type InvestecCardExecutionResponse =
+  | Status
+  | z.infer<typeof investecCardExecutionResponseSchema>;
 
-export type InvestecCardEnvironmentVariablesResponse = InvestecGenericResponse<{
-  result: InvestecCardEnvironmentVariables;
-}>;
+export const investecCardEnvironmentVariablesResponseSchema = okResponseSchema(
+  z.object({ result: investecCardEnvironmentVariablesSchema })
+);
+export type InvestecCardEnvironmentVariablesResponse =
+  | Status
+  | z.infer<typeof investecCardEnvironmentVariablesResponseSchema>;
 
-export type InvestecCardNameCodeResponse = InvestecGenericResponse<{
-  result: InvestecNameAndCode[];
-}>;
+export const investecCardNameCodeResponseSchema = okResponseSchema(
+  z.object({ result: z.array(investecNameAndCodeSchema) })
+);
+export type InvestecCardNameCodeResponse =
+  | Status
+  | z.infer<typeof investecCardNameCodeResponseSchema>;
 
-export type InvestecCreateVirtualCardResponse = InvestecGenericResponse<{
-  result: InvestecCreatedVirtualCard;
-}>;
+export const investecCreateVirtualCardResponseSchema = okResponseSchema(
+  z.object({ result: investecCreatedVirtualCardSchema })
+);
+export type InvestecCreateVirtualCardResponse =
+  | Status
+  | z.infer<typeof investecCreateVirtualCardResponseSchema>;
 
-export type InvestecCardDetailsResponse = InvestecGenericResponse<{
-  result: InvestecCardDetails;
-}>;
+export const investecCardDetailsResponseSchema = okResponseSchema(
+  z.object({ result: investecCardDetailsSchema })
+);
+export type InvestecCardDetailsResponse =
+  | Status
+  | z.infer<typeof investecCardDetailsResponseSchema>;
 
+export const investecToggleProgrammableFeatureResponseSchema = z.object({
+  Enabled: z.boolean(),
+});
 export type InvestecToggleProgrammableFeatureResponse =
   | Status
-  | { Enabled: boolean };
+  | z.infer<typeof investecToggleProgrammableFeatureResponseSchema>;
 
-export type InvestecBusinessAccountsResponse = InvestecGenericResponse<{
-  accounts: InvestecBusinessAccount[];
-}>;
+export const investecBusinessAccountsResponseSchema = okResponseSchema(
+  z.object({ accounts: z.array(investecBusinessAccountSchema) })
+);
+export type InvestecBusinessAccountsResponse =
+  | Status
+  | z.infer<typeof investecBusinessAccountsResponseSchema>;
 
+export const investecBusinessTransactionsResponseSchema = z.object({
+  data: z.object({ transactions: z.array(investecBusinessTransactionSchema) }),
+  meta: z
+    .object({
+      resultCount: z.number(),
+      totalCount: z.number(),
+      totalPages: z.number(),
+      currentPage: z.number(),
+      currentPageSize: z.number(),
+    })
+    .partial()
+    .optional(),
+});
 export type InvestecBusinessTransactionsResponse =
   | Status
-  | {
-      data: {
-        transactions: InvestecBusinessTransaction[];
-      };
-      meta: {
-        resultCount: number;
-        totalCount: number;
-        totalPages: number;
-        currentPage: number;
-        currentPageSize: number;
-      };
-    };
+  | z.infer<typeof investecBusinessTransactionsResponseSchema>;
 
 // unlike the generic envelope, the payment response has no links/meta
+export const investecBusinessPaymentResponseSchema = z.object({
+  data: z.object({ paymentId: z.string() }),
+});
 export type InvestecBusinessPaymentResponse =
   | Status
-  | { data: { paymentId: string } };
+  | z.infer<typeof investecBusinessPaymentResponseSchema>;
 
+export const investecBusinessPaymentStatusResponseSchema = z.object({
+  status: investecBusinessPaymentStatusSchema,
+});
 export type InvestecBusinessPaymentStatusResponse =
   | Status
-  | { status: InvestecBusinessPaymentStatus };
+  | z.infer<typeof investecBusinessPaymentStatusResponseSchema>;
 
-export type InvestecBusinessCompaniesResponse = InvestecGenericResponse<
-  InvestecBusinessCompany[]
->;
+export const investecBusinessCompaniesResponseSchema = okResponseSchema(
+  z.array(investecBusinessCompanySchema)
+);
+export type InvestecBusinessCompaniesResponse =
+  | Status
+  | z.infer<typeof investecBusinessCompaniesResponseSchema>;
 
 // status is a number on errors; the payment status endpoint returns an object under the same key
 export const isResponseBad = (response: any): response is Status => {

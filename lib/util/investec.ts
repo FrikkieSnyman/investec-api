@@ -1,3 +1,32 @@
+import type { ZodType } from "zod";
+import {
+  investecAccountBalanceResponseSchema,
+  investecAccountPaymentResponseSchema,
+  investecAccountPendingTransactionsResponseSchema,
+  investecAccountsResponseSchema,
+  investecAccountTransactionsResponseSchema,
+  investecAccountTransferResponseSchema,
+  investecAuthorisationSetupDetailsResponseSchema,
+  investecBeneficiariesResponseSchema,
+  investecBeneficiaryCategoriesResponseSchema,
+  investecBusinessAccountsResponseSchema,
+  investecBusinessCompaniesResponseSchema,
+  investecBusinessPaymentResponseSchema,
+  investecBusinessPaymentStatusResponseSchema,
+  investecBusinessTransactionsResponseSchema,
+  investecCardCodeResponseSchema,
+  investecCardDetailsResponseSchema,
+  investecCardEnvironmentVariablesResponseSchema,
+  investecCardExecutionResponseSchema,
+  investecCardNameCodeResponseSchema,
+  investecCardsResponseSchema,
+  investecCreateVirtualCardResponseSchema,
+  investecProfileAccountsResponseSchema,
+  investecProfilesResponseSchema,
+  investecDocumentsResponseSchema,
+  investecToggleProgrammableFeatureResponseSchema,
+  investecTokenSchema,
+} from "./model";
 import {
   InvestecAccountBalanceResponse,
   InvestecAccountsResponse,
@@ -39,12 +68,64 @@ const getBasicHeaders = (token: string) => {
   };
 };
 
-const safeResponse = <T>(response: Response) => {
-  if (response.status !== 200) {
-    return { status: response.status };
-  }
+export type InvestecValidationMode = "off" | "warn" | "strict";
 
-  return response.json() as Promise<T>;
+export interface InvestecValidationIssue {
+  path: string;
+  message: string;
+}
+
+export class InvestecValidationError extends Error {
+  constructor(
+    public endpoint: string,
+    public issues: InvestecValidationIssue[]
+  ) {
+    super(
+      `response from ${endpoint} does not match the expected schema: ${issues
+        .map((i) => `${i.path || "(root)"}: ${i.message}`)
+        .join("; ")}`
+    );
+  }
+}
+
+export interface InvestecAPIClientOptions {
+  // "warn" (default) logs schema mismatches and returns the data anyway;
+  // "strict" throws InvestecValidationError; "off" skips validation
+  validation?: InvestecValidationMode;
+  onValidationWarning?: (
+    endpoint: string,
+    issues: InvestecValidationIssue[]
+  ) => void;
+}
+
+const createSafeResponse = (
+  mode: InvestecValidationMode,
+  reportWarning: (endpoint: string, issues: InvestecValidationIssue[]) => void
+) => {
+  return async <T>(
+    schema: ZodType,
+    endpoint: string,
+    response: Response
+  ): Promise<T> => {
+    if (response.status !== 200) {
+      return { status: response.status } as T;
+    }
+    const json = await response.json();
+    if (mode !== "off") {
+      const parsed = schema.safeParse(json);
+      if (!parsed.success) {
+        const issues = parsed.error.issues.map((issue) => ({
+          path: issue.path.map(String).join("."),
+          message: issue.message,
+        }));
+        if (mode === "strict") {
+          throw new InvestecValidationError(endpoint, issues);
+        }
+        reportWarning(endpoint, issues);
+      }
+    }
+    return json as T;
+  };
 };
 
 const buildQueryString = (params: {
@@ -58,9 +139,16 @@ const buildQueryString = (params: {
 };
 
 export const createInvestecAPIClient = (
-  baseUrl: string = "https://openapi.investec.com"
+  baseUrl: string = "https://openapi.investec.com",
+  options: InvestecAPIClientOptions = {}
 ) => {
   const INVESTEC_BASE_URL = baseUrl;
+  const safeResponse = createSafeResponse(
+    options.validation ?? "warn",
+    options.onValidationWarning ??
+      ((endpoint, issues) =>
+        console.warn(new InvestecValidationError(endpoint, issues).message))
+  );
   return {
     getInvestecToken: async (
       clientId: string,
@@ -82,7 +170,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAuthResponse>(tokenResponse);
+      return safeResponse<InvestecAuthResponse>(investecTokenSchema, "getInvestecToken", tokenResponse);
     },
 
     getInvestecOAuthToken: async (
@@ -106,7 +194,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAuthResponse>(tokenResponse);
+      return safeResponse<InvestecAuthResponse>(investecTokenSchema, "getInvestecOAuthToken", tokenResponse);
     },
 
     refreshInvestecOAuthToken: async (
@@ -127,7 +215,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAuthResponse>(tokenResponse);
+      return safeResponse<InvestecAuthResponse>(investecTokenSchema, "refreshInvestecOAuthToken", tokenResponse);
     },
 
     getInvestecOAuthRedirectUrl: (
@@ -151,7 +239,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAccountsResponse>(accountsResponse);
+      return safeResponse<InvestecAccountsResponse>(investecAccountsResponseSchema, "getInvestecAccounts", accountsResponse);
     },
 
     getAccountBalance: async (
@@ -164,7 +252,7 @@ export const createInvestecAPIClient = (
           headers: { ...getBasicHeaders(token) },
         }
       );
-      return safeResponse<InvestecAccountBalanceResponse>(balanceResponse);
+      return safeResponse<InvestecAccountBalanceResponse>(investecAccountBalanceResponseSchema, "getAccountBalance", balanceResponse);
     },
 
     getInvestecTransactionsForAccount: async (
@@ -198,7 +286,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAccountTransactionsResponse>(
+      return safeResponse<InvestecAccountTransactionsResponse>(investecAccountTransactionsResponseSchema, "getInvestecTransactionsForAccount", 
         transactionsResponse
       );
     },
@@ -215,7 +303,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAccountPendingTransactionsResponse>(
+      return safeResponse<InvestecAccountPendingTransactionsResponse>(investecAccountPendingTransactionsResponseSchema, "getInvestecPendingTransactionsForAccount", 
         pendingTransactionsResponse
       );
     },
@@ -257,7 +345,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAccountTransferResponse>(transferResponse);
+      return safeResponse<InvestecAccountTransferResponse>(investecAccountTransferResponseSchema, "postInvestecTransferMultiple", transferResponse);
     },
 
     postInvestecPayMultiple: async (
@@ -293,7 +381,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAccountPaymentResponse>(transferResponse);
+      return safeResponse<InvestecAccountPaymentResponse>(investecAccountPaymentResponseSchema, "postInvestecPayMultiple", transferResponse);
     },
 
     getInvestecBeneficiaries: async (token: string) => {
@@ -305,7 +393,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBeneficiariesResponse>(beneficiariesResponse);
+      return safeResponse<InvestecBeneficiariesResponse>(investecBeneficiariesResponseSchema, "getInvestecBeneficiaries", beneficiariesResponse);
     },
 
     getInvestecBeneficiaryCategories: async (token: string) => {
@@ -317,7 +405,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBeneficiaryCategoriesResponse>(
+      return safeResponse<InvestecBeneficiaryCategoriesResponse>(investecBeneficiaryCategoriesResponseSchema, "getInvestecBeneficiaryCategories", 
         beneficiariesResponse
       );
     },
@@ -333,7 +421,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecProfilesResponse>(profilesResponse);
+      return safeResponse<InvestecProfilesResponse>(investecProfilesResponseSchema, "getInvestecProfiles", profilesResponse);
     },
 
     getInvestecProfileAccounts: async (
@@ -348,7 +436,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecProfileAccountsResponse>(accountsResponse);
+      return safeResponse<InvestecProfileAccountsResponse>(investecProfileAccountsResponseSchema, "getInvestecProfileAccounts", accountsResponse);
     },
 
     getInvestecAuthorisationSetupDetails: async (
@@ -364,7 +452,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecAuthorisationSetupDetailsResponse>(
+      return safeResponse<InvestecAuthorisationSetupDetailsResponse>(investecAuthorisationSetupDetailsResponseSchema, "getInvestecAuthorisationSetupDetails", 
         detailsResponse
       );
     },
@@ -382,7 +470,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBeneficiariesResponse>(beneficiariesResponse);
+      return safeResponse<InvestecBeneficiariesResponse>(investecBeneficiariesResponseSchema, "getInvestecProfileBeneficiaries", beneficiariesResponse);
     },
 
     getInvestecDocuments: async (
@@ -401,7 +489,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecDocumentsResponse>(documentsResponse);
+      return safeResponse<InvestecDocumentsResponse>(investecDocumentsResponseSchema, "getInvestecDocuments", documentsResponse);
     },
 
     getInvestecDocument: async (
@@ -435,7 +523,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBusinessAccountsResponse>(accountsResponse);
+      return safeResponse<InvestecBusinessAccountsResponse>(investecBusinessAccountsResponseSchema, "getInvestecBusinessAccounts", accountsResponse);
     },
 
     getInvestecBusinessTransactionsForAccount: async (
@@ -462,7 +550,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBusinessTransactionsResponse>(
+      return safeResponse<InvestecBusinessTransactionsResponse>(investecBusinessTransactionsResponseSchema, "getInvestecBusinessTransactionsForAccount", 
         transactionsResponse
       );
     },
@@ -484,7 +572,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBusinessPaymentResponse>(paymentResponse);
+      return safeResponse<InvestecBusinessPaymentResponse>(investecBusinessPaymentResponseSchema, "postInvestecBusinessPayment", paymentResponse);
     },
 
     getInvestecBusinessPaymentStatus: async (
@@ -499,7 +587,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBusinessPaymentStatusResponse>(
+      return safeResponse<InvestecBusinessPaymentStatusResponse>(investecBusinessPaymentStatusResponseSchema, "getInvestecBusinessPaymentStatus", 
         statusResponse
       );
     },
@@ -515,7 +603,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecBusinessCompaniesResponse>(companiesResponse);
+      return safeResponse<InvestecBusinessCompaniesResponse>(investecBusinessCompaniesResponseSchema, "getInvestecBusinessCompanies", companiesResponse);
     },
 
     getInvestecCards: async (token: string): Promise<InvestecCardsResponse> => {
@@ -524,7 +612,7 @@ export const createInvestecAPIClient = (
           ...getBasicHeaders(token),
         },
       });
-      return safeResponse<InvestecCardsResponse>(cardsResponse);
+      return safeResponse<InvestecCardsResponse>(investecCardsResponseSchema, "getInvestecCards", cardsResponse);
     },
 
     postInvestecCreateVirtualCard: async (
@@ -544,7 +632,7 @@ export const createInvestecAPIClient = (
           ...getBasicHeaders(token),
         },
       });
-      return safeResponse<InvestecCreateVirtualCardResponse>(response);
+      return safeResponse<InvestecCreateVirtualCardResponse>(investecCreateVirtualCardResponseSchema, "postInvestecCreateVirtualCard", response);
     },
 
     getInvestecCardDetail: async (
@@ -559,7 +647,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardDetailsResponse>(response);
+      return safeResponse<InvestecCardDetailsResponse>(investecCardDetailsResponseSchema, "getInvestecCardDetail", response);
     },
 
     postInvestecCardDetailSensitive: async (
@@ -578,7 +666,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardDetailsResponse>(response);
+      return safeResponse<InvestecCardDetailsResponse>(investecCardDetailsResponseSchema, "postInvestecCardDetailSensitive", response);
     },
 
     postInvestecCardToggleProgrammableFeature: async (
@@ -597,7 +685,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecToggleProgrammableFeatureResponse>(response);
+      return safeResponse<InvestecToggleProgrammableFeatureResponse>(investecToggleProgrammableFeatureResponseSchema, "postInvestecCardToggleProgrammableFeature", response);
     },
 
     getInvestecCardSavedCode: async (
@@ -612,7 +700,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardCodeResponse>(cardsResponse);
+      return safeResponse<InvestecCardCodeResponse>(investecCardCodeResponseSchema, "getInvestecCardSavedCode", cardsResponse);
     },
 
     getInvestecCardPublishedCode: async (
@@ -627,7 +715,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardCodeResponse>(cardsResponse);
+      return safeResponse<InvestecCardCodeResponse>(investecCardCodeResponseSchema, "getInvestecCardPublishedCode", cardsResponse);
     },
 
     postInvestecCardSaveCode: async (
@@ -647,7 +735,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardCodeResponse>(response);
+      return safeResponse<InvestecCardCodeResponse>(investecCardCodeResponseSchema, "postInvestecCardSaveCode", response);
     },
 
     postInvestecCardPublishSavedCode: async (
@@ -668,7 +756,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardCodeResponse>(response);
+      return safeResponse<InvestecCardCodeResponse>(investecCardCodeResponseSchema, "postInvestecCardPublishSavedCode", response);
     },
 
     postInvestecSimulateExecuteFunctionCode: async (
@@ -688,7 +776,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardExecutionResponse>(response);
+      return safeResponse<InvestecCardExecutionResponse>(investecCardExecutionResponseSchema, "postInvestecSimulateExecuteFunctionCode", response);
     },
 
     getInvestecCardExecutions: async (
@@ -703,7 +791,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardExecutionResponse>(cardsResponse);
+      return safeResponse<InvestecCardExecutionResponse>(investecCardExecutionResponseSchema, "getInvestecCardExecutions", cardsResponse);
     },
 
     getInvestecCardEnvironmentVariables: async (
@@ -718,7 +806,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardEnvironmentVariablesResponse>(
+      return safeResponse<InvestecCardEnvironmentVariablesResponse>(investecCardEnvironmentVariablesResponseSchema, "getInvestecCardEnvironmentVariables", 
         envResponse
       );
     },
@@ -740,7 +828,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardEnvironmentVariablesResponse>(response);
+      return safeResponse<InvestecCardEnvironmentVariablesResponse>(investecCardEnvironmentVariablesResponseSchema, "postInvestecCardEnvironmentVariables", response);
     },
 
     getInvestecCardCountries: async (
@@ -754,7 +842,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardNameCodeResponse>(envResponse);
+      return safeResponse<InvestecCardNameCodeResponse>(investecCardNameCodeResponseSchema, "getInvestecCardCountries", envResponse);
     },
 
     getInvestecCardCurrencies: async (
@@ -768,7 +856,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardNameCodeResponse>(envResponse);
+      return safeResponse<InvestecCardNameCodeResponse>(investecCardNameCodeResponseSchema, "getInvestecCardCurrencies", envResponse);
     },
 
     getInvestecCardMerchants: async (
@@ -782,7 +870,7 @@ export const createInvestecAPIClient = (
           },
         }
       );
-      return safeResponse<InvestecCardNameCodeResponse>(envResponse);
+      return safeResponse<InvestecCardNameCodeResponse>(investecCardNameCodeResponseSchema, "getInvestecCardMerchants", envResponse);
     },
   };
 };
