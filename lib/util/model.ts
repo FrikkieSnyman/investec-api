@@ -273,14 +273,26 @@ export interface InvestecPaymentAuthorisationOptions {
   periodId?: string;
 }
 
-export const investecBeneficiaryCategorySchema = z.object({
-  id: z.string(),
-  isDefault: z.string(),
-  name: z.string(),
-});
-export type InvestecBeneficiaryCategory = z.infer<
-  typeof investecBeneficiaryCategorySchema
->;
+// the spec documents { id, isDefault, name }; the live API returns
+// { CategoryId, DefaultCategory, CategoryName }. Accept both; the Client
+// normalises to the documented shape.
+export const investecBeneficiaryCategorySchema = z.union([
+  z.object({
+    id: z.string(),
+    isDefault: z.string(),
+    name: z.string(),
+  }),
+  z.object({
+    CategoryId: z.string(),
+    DefaultCategory: z.string(),
+    CategoryName: z.string(),
+  }),
+]);
+export interface InvestecBeneficiaryCategory {
+  id: string;
+  isDefault: string;
+  name: string;
+}
 
 export const investecBusinessAccountSchema = z.object({
   accountId: z.string(),
@@ -383,7 +395,8 @@ export type InvestecBusinessCompany = z.infer<
   typeof investecBusinessCompanySchema
 >;
 
-type Status = { status: number };
+// body carries the API's error payload on non-200 responses, when present
+type Status = { status: number; body?: unknown };
 
 const linksSchema = z.object({ self: z.string().nullable() });
 const metaSchema = z.object({ totalPages: z.number() }).partial();

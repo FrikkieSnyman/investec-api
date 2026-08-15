@@ -46,10 +46,10 @@ export class BusinessAccount implements InvestecBusinessAccount {
       );
     if (isResponseBad(transactions)) {
       throw new Error(
-        `not ok response while getting transactions for business account: ${{
+        `not ok response while getting transactions for business account: ${JSON.stringify({
           accountId: this.accountId,
           response: transactions,
-        }}`
+        })}`
       );
     }
     return transactions.data.transactions;
