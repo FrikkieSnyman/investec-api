@@ -335,6 +335,70 @@ describe("createInvestecAPIClient", () => {
       });
     });
 
+    it("creates a virtual card", async () => {
+      await api.postInvestecCreateVirtualCard("token", {
+        accountNumber: "10011001100",
+        embossName: "NAME ONE",
+        embossName2: "NAME TWO",
+      });
+      const { url, options } = lastCall();
+      expect(url).toBe("https://openapi.investec.com/za/v1/cards");
+      expect(options.method).toBe("POST");
+      expect(JSON.parse(options.body)).toEqual({
+        AccountNumber: "10011001100",
+        EmbossName: "NAME ONE",
+        EmbossName2: "NAME TWO",
+      });
+    });
+
+    it("gets card detail", async () => {
+      await api.getInvestecCardDetail("token", "card-1");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/v1/cards/card-1"
+      );
+    });
+
+    it("posts for sensitive card detail with extended=true", async () => {
+      const input = {
+        keyId: 0,
+        identifier: "my key",
+        appName: "app",
+        modulus: "mod",
+        exponent: "010001",
+      };
+      await api.postInvestecCardDetailSensitive("token", "card-1", input);
+      const { url, options } = lastCall();
+      expect(url).toBe(
+        "https://openapi.investec.com/za/v1/cards/card-1?extended=true"
+      );
+      expect(JSON.parse(options.body)).toEqual(input);
+    });
+
+    it("publishes saved code to the publish endpoint", async () => {
+      await api.postInvestecCardPublishSavedCode("token", "card-1", "code-id");
+      const { url, options } = lastCall();
+      expect(url).toBe(
+        "https://openapi.investec.com/za/v1/cards/card-1/publish"
+      );
+      expect(JSON.parse(options.body)).toEqual({
+        codeid: "code-id",
+        code: "",
+      });
+    });
+
+    it("toggles the programmable feature", async () => {
+      await api.postInvestecCardToggleProgrammableFeature(
+        "token",
+        "card-1",
+        true
+      );
+      const { url, options } = lastCall();
+      expect(url).toBe(
+        "https://openapi.investec.com/za/v1/cards/card-1/toggle-programmable-feature"
+      );
+      expect(JSON.parse(options.body)).toEqual({ Enabled: true });
+    });
+
     it("gets countries, currencies and merchants", async () => {
       await api.getInvestecCardCountries("token");
       expect(lastCall().url).toBe(
