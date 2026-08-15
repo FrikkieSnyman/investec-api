@@ -9,7 +9,13 @@ import {
   isResponseBad,
   Realm,
 } from "../util/model";
-import * as camelcaseKeys from "camelcase-keys";
+// PB returns camelCase keys, BB v1 returns PascalCase; normalise to camelCase
+const camelizeKeys = (obj: Record<string, any>): Record<string, any> =>
+  Object.keys(obj).reduce((acc, key) => {
+    acc[key.charAt(0).toLowerCase() + key.slice(1)] = obj[key];
+    return acc;
+  }, {} as Record<string, any>);
+
 export class Account implements InvestecAccount {
   public accountId: string;
   public accountNumber: string;
@@ -19,7 +25,7 @@ export class Account implements InvestecAccount {
   public realm: Realm;
   public meta: any;
   constructor(private client: Client, _account: InvestecAccount, realm: Realm) {
-    const account = camelcaseKeys(_account);
+    const account = camelizeKeys(_account) as InvestecAccount;
     this.accountId = account.accountId;
     this.accountNumber = account.accountNumber;
     this.accountName = account.accountName;

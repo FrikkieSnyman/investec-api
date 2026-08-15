@@ -1,8 +1,7 @@
 import { createInvestecAPIClient } from "../lib/util/investec";
-import fetchModule from "node-fetch";
 
-jest.mock("node-fetch");
-const fetch = fetchModule as unknown as jest.Mock;
+const fetch = jest.fn();
+global.fetch = fetch as unknown as typeof global.fetch;
 
 const okJson = (data: unknown) => ({
   status: 200,
