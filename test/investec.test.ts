@@ -14,7 +14,8 @@ const lastCall = () => {
 };
 
 describe("createInvestecAPIClient", () => {
-  const api = createInvestecAPIClient();
+  // validation off: these tests assert requests, not response shapes
+  const api = createInvestecAPIClient(undefined, { validation: "off" });
 
   beforeEach(() => {
     fetch.mockReset();
@@ -28,7 +29,9 @@ describe("createInvestecAPIClient", () => {
     });
 
     it("uses a custom base URL when provided", async () => {
-      const custom = createInvestecAPIClient("https://sandbox.example.com");
+      const custom = createInvestecAPIClient("https://sandbox.example.com", {
+        validation: "off",
+      });
       await custom.getInvestecCards("token");
       expect(lastCall().url).toBe("https://sandbox.example.com/za/v1/cards");
     });

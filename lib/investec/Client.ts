@@ -1,4 +1,7 @@
-import { createInvestecAPIClient } from "../util/investec";
+import {
+  createInvestecAPIClient,
+  InvestecAPIClientOptions,
+} from "../util/investec";
 import {
   InvestecAuthorisationSetupDetails,
   InvestecAuthResponse,
@@ -21,10 +24,11 @@ export class Client {
     clientId: string,
     clientSecret: string,
     apiKey: string,
-    baseUrl?: string
+    baseUrl?: string,
+    options?: InvestecAPIClientOptions
   ) {
     const client = new Client(
-      createInvestecAPIClient(baseUrl),
+      createInvestecAPIClient(baseUrl, options),
       clientId,
       clientSecret,
       apiKey
