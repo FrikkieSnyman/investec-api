@@ -421,7 +421,7 @@ export const createInvestecAPIClient = (
       if (documentResponse.status !== 200) {
         return { status: documentResponse.status };
       }
-      return documentResponse.buffer();
+      return Buffer.from(await documentResponse.arrayBuffer());
     },
 
     getInvestecCards: async (token: string): Promise<InvestecCardsResponse> => {

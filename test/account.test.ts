@@ -92,6 +92,71 @@ describe("Account", () => {
     );
   });
 
+  it("defaults transfers to the account's profileId", async () => {
+    const postInvestecTransferMultiple = jest.fn().mockResolvedValue({
+      data: { TransferResponses: [], ErrorMessage: null },
+    });
+    const fakeClient = makeFakeClient({ postInvestecTransferMultiple });
+    const account = new Account(
+      fakeClient,
+      { ...rawAccount, profileId: "prof-1" },
+      "private"
+    );
+    const target = new Account(
+      fakeClient,
+      { ...rawAccount, accountId: "acc-2" },
+      "private"
+    );
+    await account.transfer([
+      { account: target, amount: 10, myReference: "m", theirReference: "t" },
+    ]);
+    expect(postInvestecTransferMultiple.mock.calls[0][1].profileId).toBe(
+      "prof-1"
+    );
+
+    await account.transfer(
+      [{ account: target, amount: 10, myReference: "m", theirReference: "t" }],
+      "prof-override"
+    );
+    expect(postInvestecTransferMultiple.mock.calls[1][1].profileId).toBe(
+      "prof-override"
+    );
+  });
+
+  it("maps the authorisation object to the API's authoriser fields", async () => {
+    const postInvestecPayMultiple = jest.fn().mockResolvedValue({
+      data: { TransferResponses: [], ErrorMessage: null },
+    });
+    const account = new Account(
+      makeFakeClient({ postInvestecPayMultiple }),
+      rawAccount,
+      "private"
+    );
+    const beneficiary = { beneficiaryId: "ben-1" } as InvestecBeneficiary;
+    await account.pay([
+      {
+        beneficiary,
+        amount: 5,
+        myReference: "m",
+        theirReference: "t",
+        authorisation: { aId: "auth-a", bId: "auth-b", periodId: "1" },
+        fasterPayment: true,
+      },
+    ]);
+    expect(
+      postInvestecPayMultiple.mock.calls[0][1].toBeneficiaries[0]
+    ).toEqual({
+      beneficiaryId: "ben-1",
+      amount: 5,
+      myReference: "m",
+      theirReference: "t",
+      authoriserAId: "auth-a",
+      authoriserBId: "auth-b",
+      authPeriodId: "1",
+      fasterPayment: true,
+    });
+  });
+
   it("maps payment recipients to beneficiary ids", async () => {
     const postInvestecPayMultiple = jest.fn().mockResolvedValue({
       data: { TransferResponses: [], ErrorMessage: null },
