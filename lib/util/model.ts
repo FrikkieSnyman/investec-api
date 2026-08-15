@@ -235,6 +235,93 @@ export interface InvestecBeneficiaryCategory {
   name: string;
 }
 
+export interface InvestecBusinessAccount {
+  accountId: string;
+  accountName: string;
+  accountNumber: string;
+  accountType: string;
+  electronicAccountNumber: string | null;
+  nickName: string;
+  availableBalance: number;
+  balance: number;
+  currencyCode: string;
+}
+
+export interface InvestecBusinessTransaction {
+  accountId: string;
+  accountName: string;
+  accountNumber: string;
+  accountType: string;
+  lineId: string;
+  transactionId: string;
+  transactionDescription: string;
+  postDate: string; // ISO8601 date (yyyy-mm-dd)
+  valueDate: string; // ISO8601 date (yyyy-mm-dd)
+  deposit: number;
+  withdrawal: number;
+  transactionCodeDescription: string | null;
+  cardNumber: string | null;
+  cardHolderName: string | null;
+  paymentId: string;
+  counterPartyAccountNumber: string | null;
+  bulkId: string | null;
+  numberOfTransactions: number | null;
+  clientStatementReference: string;
+  uetr: string;
+  fileId: string | null;
+  statementId: string;
+  statementNumber: string | null;
+  swiftStatementNumber: string | null;
+  matchedCardKey: string | null;
+  paymentReference: string;
+  drCrIndicator: InvestecTransactionType;
+  electronicAccountNumber: string | null;
+  transactionStatus: string;
+  runningBalance: number;
+  supplementaryId: string;
+  transactionCode: string;
+  currencyCode: string;
+  transactionAmount: number;
+}
+
+export interface InvestecBusinessPaymentRemittance {
+  format: string; // e.g. "XMLPain NEWSTDD" - PAIN.001 ISO 20022 Standard
+  payload: {
+    body: {
+      content: string; // base64 encoded pain.001.09 file
+      contentEncoding: string; // e.g. "base64"
+    };
+    compression?: string;
+    encryption?: {
+      algorithm?: string;
+      initialVector?: string;
+      keyName?: string;
+    };
+  };
+  subFormat?: string;
+}
+
+export interface InvestecBusinessPaymentStatus {
+  format: string; // e.g. "XML Pain 002.001.10"
+  payload: {
+    compression: string;
+    encryption?: {
+      algorithm?: string;
+      keyName?: string;
+      initialVector?: string;
+    };
+    body: {
+      content: string; // base64 encoded pain.002 status report
+      contentEncoding: string;
+    };
+  };
+}
+
+export interface InvestecBusinessCompany {
+  companyName: string;
+  companyFullName?: string;
+}
+
 type Status = { status: number };
 type InvestecGenericOKResponse<Data> = {
   data: Data;
@@ -246,8 +333,6 @@ type InvestecGenericOKResponse<Data> = {
   };
 };
 type InvestecGenericResponse<Data> = Status | InvestecGenericOKResponse<Data>;
-
-export type Realm = "business" | "private";
 
 export type Scope =
   | "accounts"
@@ -345,6 +430,39 @@ export type InvestecToggleProgrammableFeatureResponse =
   | Status
   | { Enabled: boolean };
 
+export type InvestecBusinessAccountsResponse = InvestecGenericResponse<{
+  accounts: InvestecBusinessAccount[];
+}>;
+
+export type InvestecBusinessTransactionsResponse =
+  | Status
+  | {
+      data: {
+        transactions: InvestecBusinessTransaction[];
+      };
+      meta: {
+        resultCount: number;
+        totalCount: number;
+        totalPages: number;
+        currentPage: number;
+        currentPageSize: number;
+      };
+    };
+
+// unlike the generic envelope, the payment response has no links/meta
+export type InvestecBusinessPaymentResponse =
+  | Status
+  | { data: { paymentId: string } };
+
+export type InvestecBusinessPaymentStatusResponse =
+  | Status
+  | { status: InvestecBusinessPaymentStatus };
+
+export type InvestecBusinessCompaniesResponse = InvestecGenericResponse<
+  InvestecBusinessCompany[]
+>;
+
+// status is a number on errors; the payment status endpoint returns an object under the same key
 export const isResponseBad = (response: any): response is Status => {
-  return !!response.status;
+  return typeof response.status === "number";
 };

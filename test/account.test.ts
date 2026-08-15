@@ -22,7 +22,7 @@ const makeFakeClient = (apiClient: Record<string, jest.Mock>) =>
 
 describe("Account", () => {
   it("exposes the account fields", () => {
-    const account = new Account(makeFakeClient({}), rawAccount, "private");
+    const account = new Account(makeFakeClient({}), rawAccount);
     expect(account.accountId).toBe("acc-1");
     expect(account.accountNumber).toBe("10010206147");
     expect(account.productName).toBe("Private Bank Account");
@@ -34,24 +34,18 @@ describe("Account", () => {
     });
     const account = new Account(
       makeFakeClient({ getAccountBalance }),
-      rawAccount,
-      "private"
+      rawAccount
     );
     const balance = await account.getBalance();
     expect(balance).toEqual({ accountId: "acc-1", currentBalance: 100 });
-    expect(getAccountBalance).toHaveBeenCalledWith(
-      "token",
-      "acc-1",
-      "private"
-    );
+    expect(getAccountBalance).toHaveBeenCalledWith("token", "acc-1");
   });
 
   it("throws on a bad balance response", async () => {
     const getAccountBalance = jest.fn().mockResolvedValue({ status: 500 });
     const account = new Account(
       makeFakeClient({ getAccountBalance }),
-      rawAccount,
-      "private"
+      rawAccount
     );
     await expect(account.getBalance()).rejects.toThrow();
   });
@@ -62,8 +56,7 @@ describe("Account", () => {
     });
     const account = new Account(
       makeFakeClient({ getInvestecTransactionsForAccount }),
-      rawAccount,
-      "private"
+      rawAccount
     );
     const transactions = await account.getTransactions({});
     expect(transactions).toEqual([{ accountId: "acc-1", amount: 5 }]);
@@ -74,26 +67,21 @@ describe("Account", () => {
       data: { TransferResponses: [], ErrorMessage: null },
     });
     const fakeClient = makeFakeClient({ postInvestecTransferMultiple });
-    const account = new Account(fakeClient, rawAccount, "private");
+    const account = new Account(fakeClient, rawAccount);
     const target = new Account(
       fakeClient,
-      { ...rawAccount, accountId: "acc-2" },
-      "private"
+      { ...rawAccount, accountId: "acc-2" }
     );
     await account.transfer([
       { account: target, amount: 10, myReference: "m", theirReference: "t" },
     ]);
-    expect(postInvestecTransferMultiple).toHaveBeenCalledWith(
-      "token",
-      {
-        fromAccountId: "acc-1",
-        toAccounts: [
-          { accountId: "acc-2", amount: 10, myReference: "m", theirReference: "t" },
-        ],
-        profileId: "prof-default",
-      },
-      "private"
-    );
+    expect(postInvestecTransferMultiple).toHaveBeenCalledWith("token", {
+      fromAccountId: "acc-1",
+      toAccounts: [
+        { accountId: "acc-2", amount: 10, myReference: "m", theirReference: "t" },
+      ],
+      profileId: "prof-default",
+    });
   });
 
   it("defaults transfers to the account's profileId", async () => {
@@ -103,13 +91,11 @@ describe("Account", () => {
     const fakeClient = makeFakeClient({ postInvestecTransferMultiple });
     const account = new Account(
       fakeClient,
-      { ...rawAccount, profileId: "prof-1" },
-      "private"
+      { ...rawAccount, profileId: "prof-1" }
     );
     const target = new Account(
       fakeClient,
-      { ...rawAccount, accountId: "acc-2" },
-      "private"
+      { ...rawAccount, accountId: "acc-2" }
     );
     await account.transfer([
       { account: target, amount: 10, myReference: "m", theirReference: "t" },
@@ -133,8 +119,7 @@ describe("Account", () => {
     });
     const account = new Account(
       makeFakeClient({ postInvestecPayMultiple }),
-      rawAccount,
-      "private"
+      rawAccount
     );
     const beneficiary = { beneficiaryId: "ben-1" } as InvestecBeneficiary;
     await account.pay([
@@ -167,30 +152,24 @@ describe("Account", () => {
     });
     const account = new Account(
       makeFakeClient({ postInvestecPayMultiple }),
-      rawAccount,
-      "private"
+      rawAccount
     );
     const beneficiary = { beneficiaryId: "ben-1" } as InvestecBeneficiary;
     await account.pay([
       { beneficiary, amount: 5, myReference: "m", theirReference: "t" },
     ]);
-    expect(postInvestecPayMultiple).toHaveBeenCalledWith(
-      "token",
-      {
-        fromAccountId: "acc-1",
-        toBeneficiaries: [
-          { beneficiaryId: "ben-1", amount: 5, myReference: "m", theirReference: "t" },
-        ],
-      },
-      "private"
-    );
+    expect(postInvestecPayMultiple).toHaveBeenCalledWith("token", {
+      fromAccountId: "acc-1",
+      toBeneficiaries: [
+        { beneficiaryId: "ben-1", amount: 5, myReference: "m", theirReference: "t" },
+      ],
+    });
   });
 
   it("throws when the client has no token", async () => {
     const account = new Account(
       { token: undefined, ApiClient: {} } as unknown as Client,
-      rawAccount,
-      "private"
+      rawAccount
     );
     await expect(account.getBalance()).rejects.toThrow("client is not set up");
   });

@@ -30,15 +30,17 @@ If you start to get errors about the token no longer being valid, simply call:
 await client.authenticate();
 ```
 
-## Accounts
+## Accounts (Private Banking)
 
 ### List accounts
 
 ```ts
-const accounts = await client.getAccounts("private" | "business" = "private");
+const accounts = await client.getAccounts();
 ```
 
 This returns an array of `Account` objects.
+
+> **Breaking change**: `getAccounts` no longer takes a realm. Business (CIB) accounts are a separate domain with their own shape and endpoints; use `client.getBusinessAccounts()` instead.
 
 ### Account functions
 
@@ -150,6 +152,55 @@ const details = await client.getAuthorisationSetupDetails(profileId, accountId);
 
 ```ts
 const beneficiaries = await client.getProfileBeneficiaries(profileId, accountId);
+```
+
+## Business Banking (CIB)
+
+### List business accounts
+
+```ts
+const accounts = await client.getBusinessAccounts(); // BusinessAccount[]
+```
+
+### Business account transactions
+
+```ts
+const transactions = await businessAccount.getTransactions({
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+});
+```
+
+### Initiate payment
+
+Takes a PAIN.001 (ISO 20022) remittance payload and an idempotency key.
+
+```ts
+const { paymentId } = await client.initiateBusinessPayment(
+  {
+    format: "XMLPain NEWSTDD",
+    payload: {
+      body: {
+        content: base64EncodedPain001File,
+        contentEncoding: "base64",
+      },
+    },
+  },
+  idempotencyKey
+);
+```
+
+### Payment status
+
+```ts
+const status = await client.getBusinessPaymentStatus(paymentId);
+```
+
+### List companies
+
+```ts
+const companies = await client.getBusinessCompanies();
 ```
 
 ## Cards

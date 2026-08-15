@@ -90,18 +90,11 @@ describe("createInvestecAPIClient", () => {
   });
 
   describe("accounts", () => {
-    it("gets private banking accounts by default", async () => {
+    it("gets private banking accounts", async () => {
       await api.getInvestecAccounts("token");
       const { url, options } = lastCall();
       expect(url).toBe("https://openapi.investec.com/za/pb/v1/accounts");
       expect(options.headers.Authorization).toBe("Bearer token");
-    });
-
-    it("gets business accounts for the business realm", async () => {
-      await api.getInvestecAccounts("token", "business");
-      expect(lastCall().url).toBe(
-        "https://openapi.investec.com/za/bb/v1/accounts"
-      );
     });
 
     it("gets an account balance", async () => {
@@ -266,6 +259,54 @@ describe("createInvestecAPIClient", () => {
       await api.getInvestecBeneficiaryCategories("token");
       expect(lastCall().url).toBe(
         "https://openapi.investec.com/za/pb/v1/accounts/beneficiarycategories"
+      );
+    });
+  });
+
+  describe("business banking", () => {
+    it("gets business accounts from the v2 endpoint", async () => {
+      await api.getInvestecBusinessAccounts("token");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/bb/v2/accounts"
+      );
+    });
+
+    it("gets business transactions with query params", async () => {
+      await api.getInvestecBusinessTransactionsForAccount("token", {
+        accountId: "acc-1",
+        fromDate: "2025-02-01",
+        toDate: "2025-02-15",
+        page: 2,
+      });
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/bb/v2/accounts/acc-1/transactions?fromDate=2025-02-01&toDate=2025-02-15&page=2"
+      );
+    });
+
+    it("initiates a payment with an idempotency key", async () => {
+      const remittance = {
+        format: "XMLPain NEWSTDD",
+        payload: { body: { content: "base64==", contentEncoding: "base64" } },
+      };
+      await api.postInvestecBusinessPayment("token", remittance, "idem-1");
+      const { url, options } = lastCall();
+      expect(url).toBe("https://openapi.investec.com/za/bb/v1/payments");
+      expect(options.method).toBe("POST");
+      expect(options.headers["Idempotency-Key"]).toBe("idem-1");
+      expect(JSON.parse(options.body)).toEqual({ remittance });
+    });
+
+    it("gets payment status", async () => {
+      await api.getInvestecBusinessPaymentStatus("token", "pay-1");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/bb/v1/payments/pay-1/status"
+      );
+    });
+
+    it("gets companies", async () => {
+      await api.getInvestecBusinessCompanies("token");
+      expect(lastCall().url).toBe(
+        "https://openapi.investec.com/za/bb/v1/companies"
       );
     });
   });

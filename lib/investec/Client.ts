@@ -4,13 +4,16 @@ import {
   InvestecAuthResponse,
   InvestecBeneficiary,
   InvestecBeneficiaryCategory,
+  InvestecBusinessCompany,
+  InvestecBusinessPaymentRemittance,
+  InvestecBusinessPaymentStatus,
   InvestecProfile,
   InvestecToken,
   isResponseBad,
-  Realm,
   Scope,
 } from "../util/model";
 import { Account } from "./Account";
+import { BusinessAccount } from "./BusinessAccount";
 import { Card } from "./Card";
 
 export class Client {
@@ -98,20 +101,95 @@ export class Client {
     );
   }
 
-  public async getAccounts(realm: Realm = "private"): Promise<Account[]> {
+  public async getAccounts(): Promise<Account[]> {
     if (!this.token) {
       throw new Error("client is not set up");
     }
     const accounts = await this.apiClient.getInvestecAccounts(
-      this.token.access_token,
-      realm
+      this.token.access_token
     );
     if (isResponseBad(accounts)) {
       throw new Error(
         `not ok response from getting accounts: ${JSON.stringify(accounts)}`
       );
     }
-    return accounts.data.accounts.map((a) => new Account(this, a, realm));
+    return accounts.data.accounts.map((a) => new Account(this, a));
+  }
+
+  public async getBusinessAccounts(): Promise<BusinessAccount[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const accounts = await this.apiClient.getInvestecBusinessAccounts(
+      this.token.access_token
+    );
+    if (isResponseBad(accounts)) {
+      throw new Error(
+        `not ok response from getting business accounts: ${JSON.stringify(
+          accounts
+        )}`
+      );
+    }
+    return accounts.data.accounts.map((a) => new BusinessAccount(this, a));
+  }
+
+  public async initiateBusinessPayment(
+    remittance: InvestecBusinessPaymentRemittance,
+    idempotencyKey: string
+  ): Promise<{ paymentId: string }> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const payment = await this.apiClient.postInvestecBusinessPayment(
+      this.token.access_token,
+      remittance,
+      idempotencyKey
+    );
+    if (isResponseBad(payment)) {
+      throw new Error(
+        `not ok response from initiating business payment: ${JSON.stringify(
+          payment
+        )}`
+      );
+    }
+    return payment.data;
+  }
+
+  public async getBusinessPaymentStatus(
+    paymentId: string
+  ): Promise<InvestecBusinessPaymentStatus> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const status = await this.apiClient.getInvestecBusinessPaymentStatus(
+      this.token.access_token,
+      paymentId
+    );
+    if (isResponseBad(status)) {
+      throw new Error(
+        `not ok response from getting business payment status: ${JSON.stringify(
+          status
+        )}`
+      );
+    }
+    return status.status;
+  }
+
+  public async getBusinessCompanies(): Promise<InvestecBusinessCompany[]> {
+    if (!this.token) {
+      throw new Error("client is not set up");
+    }
+    const companies = await this.apiClient.getInvestecBusinessCompanies(
+      this.token.access_token
+    );
+    if (isResponseBad(companies)) {
+      throw new Error(
+        `not ok response from getting business companies: ${JSON.stringify(
+          companies
+        )}`
+      );
+    }
+    return companies.data;
   }
 
   public async getCards(): Promise<Card[]> {
@@ -186,12 +264,7 @@ export class Client {
       );
     }
     return accounts.data.map(
-      (a) =>
-        new Account(
-          this,
-          { ...a, profileId: a.profileId ?? profileId },
-          "private"
-        )
+      (a) => new Account(this, { ...a, profileId: a.profileId ?? profileId })
     );
   }
 
